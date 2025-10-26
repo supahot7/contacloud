@@ -1,0 +1,171 @@
+body {
+            font-family: Arial, sans-serif;
+            background-color: #E6E6E7; /* Fondo general de la página */
+            margin: 0;
+            display: flex; /* Para que el sidebar y el contenido se pongan uno al lado del otro */
+            min-height: 100vh; /* Ocupa el 100% de la altura de la vista */
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px; /* Ancho fijo del sidebar */
+            background-color: #007B80; /* Color de fondo del sidebar */
+            padding-top: 20px;
+            box-shadow: 2px 0 5px #E6E6E7;
+            flex-shrink: 0; /* Evita que el sidebar se encoja */
+            min-height: calc(100vh - 40px); /* Ocupa toda la altura restante de la vista */
+        }
+
+        .sidebar .sidebar-header {
+            color: #E6E6E7;
+            padding: 15px 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            border-radius: 0.3rem;
+            margin: 0 15px 20px 15px;
+        }       
+
+
+        .sidebar .nav-link {
+            color: #E6E6E7; /* Color del texto de los enlaces */
+            padding: 15px 20px;
+            margin: 10px 15px; /* Margen para que los botones no peguen a los lados */
+            border-radius: 0.3rem;
+            background-color: #007B80; /* Fondo de los botones del sidebar */
+            text-align: left;
+            font-size: 1.1rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            display: block; /* Para que ocupen todo el ancho y el padding funcione */
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: #79A3A1; /* Color al pasar el mouse o activo */
+            color: #fff;
+        }
+
+        /* Navbar Superior (Contacloud, icono, Cerrar sesión) */
+        .navbar-custom {
+            display: flex;
+            
+            align-items: center;
+            background-color: #E6E6E7; /* Fondo blanco */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 1rem 1.5rem; /* Ajustar padding */
+            border-bottom: 1px solid #ced4da;
+            z-index: 1030;        /* Por encima de otros elementos */
+            text-align: center;  
+            }
+
+
+        .navbar-brand-custom {
+            color: #000000;
+            font-size: 1.8rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .navbar-brand-custom .fi {
+            vertical-align: middle;
+            margin-left: 0.5rem;
+            font-size: 0.9em;
+            color: #000000;
+        }
+        .btn-logout {
+            background-color: #007B80; /* Color del botón de cerrar sesión */
+            color: #ffffff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.3rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            margin-right: 10px;
+        }
+        .btn-logout:hover {
+            background-color: #79A3A1;
+            color: #fff;
+        }
+
+
+
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0; /* Ocultar sidebar por defecto en móviles */
+                position: fixed;
+                height: 100vh;
+                left: -250px; /* Esconder fuera de la vista */
+                transition: all 0.3s ease;
+                z-index: 1040;
+            }
+            .sidebar.show {
+                left: 0; /* Mostrar sidebar */
+            }
+            .main-wrapper {
+                margin-left: 0;
+            }
+            .content {
+                width: 100%;
+            }
+            /* Botón para abrir el sidebar en móviles */
+            .navbar-toggler-custom {
+                display: block !important;
+            }
+        }
+
+
+        
+        .sidebar.hidden {
+            left: -220px;
+            opacity: 0;
+        }
+
+
+        .sidebar.hidden ~ .content {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        
+        
+
+        /* --- Sidebar dinámico --- */
+.sidebar {
+    width: 250px;
+    background-color: #007B80;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px #E6E6E7;
+    min-height: 100vh;
+    position: fixed;
+    left: -250px;
+    top: 0;
+    transition: left 0.3s ease;
+    z-index: 1040;
+}
+
+.sidebar.show {
+    left: 0;
+}
+
+/* --- Ajustes del contenido --- */
+.content {
+    flex: 1;
+    margin-left: 0;
+    transition: margin-left 0.3s ease;
+    width: 100%;
+}
+
+.sidebar.show ~ .content {
+    margin-left: 250px;
+}
+
+
+
+/* --- Botón de toggle --- */
+#toggleSidebar {
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    color: #333;
+}

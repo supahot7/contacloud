@@ -1,0 +1,61 @@
+/* ==============================
+   Encabezado de la tabla
+   ============================== */
+.table thead th {
+    background-color:#007B80; /* Color de fondo personalizado */
+    color: #ffffff; /* Color del texto */
+    border-color: #357ABD; /* Borde del encabezado */
+    text-align: center; /* Centrar texto */
+}
+
+/* ==============================
+   Botones personalizados
+   ============================== */
+.btn-primary {
+    background-color: #007B80; /* Color de fondo */
+    border-color: #007B80; /* Borde */
+}
+
+.btn-primary:hover {
+    background-color: #C0D0EF; /* Fondo al pasar el mouse */
+    border-color: #C0D0EF;
+    color: #000;
+}
+
+
+.btn-warning {
+    background-color: #007B80 !important;
+    border-color: #007B80;
+    color: #E6E6E7; /* Texto oscuro */
+}
+
+.btn-warning:hover {
+    background-color: #244C53 !important;
+    border-color: #244C53;
+    color: #E6E6E7;
+}
+
+.btn-danger {
+    background-color: #244C53;
+    border-color: #244C53;
+}
+
+.btn-danger:hover {
+    background-color: #007B80;
+    border-color: #007B80;
+}
+
+/* ==============================
+   Botones pequeños (acciones)
+   ============================== */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* ==============================
+   Opcional: cambiar color de la fila al pasar mouse
+   ============================== */
+.table-hover tbody tr:hover {
+    background-color: #f0f8ff; /* Azul muy claro */
+}
