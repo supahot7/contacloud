@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ContaCloud - Nueva Transacción{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/contabilidad/nueva_transaccion.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="transaction-header mb-4 mt-4 fw-bold">
+        <h2>Nueva transacción</h2>
+
+    <div class="row g-4">
+        <!-- Columna izquierda: formulario -->
+        <div class="col-lg-5">
+            <div class="card p-3 shadow-sm">
+                <div class="mb-3">
+                    <label for="fecha" class="form-label">Fecha</label>
+                    <div class="input-group">
+                        <input type="date" class="form-control" id="fecha">
+                    </div>
+                </div>
+
+    
+
+                <div class="mb-3">
+                    <label for="seleccionar-cuenta" class="form-label">Seleccionar cuenta</label>
+                    <div class="row g-2">
+                        <div class="col">
+                            <select id="seleccionar-cuenta" class="form-select">
+                                <option value="Caja">Caja</option>
+                                <option value="Banco">Banco</option>
+                                <option value="Cuentas por Cobrar">Cuentas por Cobrar</option>
+                                <option value="Inventario">Inventario</option>
+                                <option value="Deudores">Deudores</option>
+                                <option value="Capital">Capital</option>
+                                <option value="Proveedores">Proveedores</option>
+                                <option value="Cuentas por Pagar">Cuentas por Pagar</option>
+                                <option value="Ventas">Ventas</option>
+                                <option value="Costo de Ventas">Costo de Ventas</option>
+                                <option value="Gastos Administrativos">Gastos Administrativos</option>
+                                <option value="Gastos de Venta">Gastos de Venta</option>
+                                <option value="Otros Ingresos">Otros Ingresos</option>
+                                <option value="Otros Gastos">Otros Gastos</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <select id="tipo-movimiento" class="form-select">
+                                <option value="Debe">Debe</option>
+                                <option value="Haber">Haber</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="monto" class="form-label">Monto</label>
+                    <input type="number" class="form-control" id="monto" placeholder="0.00">
+                </div>
+
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="iva">
+                    <label class="form-check-label" for="iva">IVA (13%)</label>
+                </div>
+
+                <div class="mb-3">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <textarea class="form-control" id="descripcion" rows="4"></textarea>
+                </div>
+
+                <button type="button" class="btn btn-primary w-100 mt-3" id="addMovementBtn">Añadir Movimiento</button>
+            </div>
+        </div>
+
+        <!-- Columna derecha: tabla -->
+        <div class="col-lg-7">
+            <div class="card p-3 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="movementsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Fecha</th>
+                                <th>Cuenta</th>
+                                <th>Debe</th>
+                                <th>Haber</th>
+                                <th>Descripción</th>
+                                <th>Opciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="no-movements-row">
+                                <td colspan="7" class="text-center text-muted">Aún no hay movimientos.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addMovementBtn = document.getElementById('addMovementBtn');
+    const movementsTableBody = document.querySelector('#movementsTable tbody');
+    let noMovementsRow = document.getElementById('no-movements-row');
+    let movementCount = 0;
+
+    addMovementBtn.addEventListener('click', function() {
+        const fechaInput = document.getElementById('fecha');
+        const cuentaSelect = document.getElementById('seleccionar-cuenta');
+        const tipoMovimientoSelect = document.getElementById('tipo-movimiento');
+        const montoInput = document.getElementById('monto');
+        const descripcionInput = document.getElementById('descripcion');
+        const ivaCheck = document.getElementById('iva');
+
+        const fecha = fechaInput.value;
+        const cuenta = cuentaSelect.value;
+        const tipoMovimiento = tipoMovimientoSelect.value;
+        let monto = parseFloat(montoInput.value);
+        const descripcion = descripcionInput.value.trim();
+
+        // Validación de campos
+        if (!fecha) {
+            alert('Por favor, selecciona una fecha.');
+            fechaInput.focus();
+            return;
+        }
+
+        if (isNaN(monto) || monto <= 0) {
+            alert('Por favor, ingresa un monto válido mayor que cero.');
+            montoInput.focus();
+            return;
+        }
+
+        // Aplicar IVA si está seleccionado
+        if (ivaCheck.checked) {
+            monto = monto * 1.13;
+        }
+
+        // Eliminar mensaje "sin movimientos"
+        if (noMovementsRow) {
+            noMovementsRow.remove();
+            noMovementsRow = null;
+        }
+
+        movementCount++;
+
+        // Crear nueva fila
+        const newRow = movementsTableBody.insertRow();
+        newRow.setAttribute('data-movement-id', movementCount);
+
+        const cellNum = newRow.insertCell(0);
+        const cellFecha = newRow.insertCell(1);
+        const cellCuenta = newRow.insertCell(2);
+        const cellDebe = newRow.insertCell(3);
+        const cellHaber = newRow.insertCell(4);
+        const cellDescripcion = newRow.insertCell(5);
+        const cellOpciones = newRow.insertCell(6);
+
+        cellNum.textContent = movementCount;
+        cellFecha.textContent = fecha;
+        cellCuenta.textContent = cuenta;
+        cellDebe.textContent = tipoMovimiento === 'Debe' ? monto.toFixed(2) : '0.00';
+        cellHaber.textContent = tipoMovimiento === 'Haber' ? monto.toFixed(2) : '0.00';
+        cellDescripcion.textContent = descripcion || '—';
+
+        // Botón eliminar
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn btn-sm btn-outline-danger';
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.addEventListener('click', function() {
+            newRow.remove();
+            if (movementsTableBody.children.length === 0) {
+                const emptyRow = movementsTableBody.insertRow();
+                emptyRow.id = 'no-movements-row';
+                const emptyCell = emptyRow.insertCell(0);
+                emptyCell.colSpan = 7;
+                emptyCell.className = 'text-center text-muted';
+                emptyCell.textContent = 'Aún no hay movimientos.';
+                noMovementsRow = emptyRow;
+            }
+        });
+        cellOpciones.appendChild(deleteBtn);
+
+        // Limpiar campos
+        fechaInput.value = '';
+        montoInput.value = '';
+        cuentaSelect.selectedIndex = 0;
+        tipoMovimientoSelect.selectedIndex = 0;
+        descripcionInput.value = '';
+        ivaCheck.checked = false;
+
+        /* 
+        -----------------------------------------------------------
+        🔹 PARA CONECTAR CON BASE DE DATOS (DESCOMENTAR CUANDO LISTO)
+        -----------------------------------------------------------
+        // fetch('/transacciones/guardar/', {
+        //     method: 'POST',
+        //     headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+        //     body: JSON.stringify({ 
+        //         fecha: fecha,
+        //         cuenta: cuenta, 
+        //         tipo: tipoMovimiento, 
+        //         monto: monto, 
+        //         descripcion: descripcion 
+        //     })
+        // })
+        // .then(res => res.json())
+        // .then(data => console.log('Movimiento guardado:', data))
+        // .catch(err => console.error('Error:', err));
+        */
+    });
+});
+</script>
+{% endblock %}

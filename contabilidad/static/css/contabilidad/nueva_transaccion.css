@@ -1,0 +1,164 @@
+
+body {
+    background-color: #E6E6E7;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* 🧾 Encabezado */
+.transaction-header h2 {
+    font-weight: 600;
+    color: #000000 !important;
+    padding: 10px;
+    
+}
+
+/* 📋 Tarjetas del formulario y tabla */
+.card {
+    border: none;
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: auto;
+}
+
+/* 🧍‍♀️ Formulario */
+label.form-label {
+    font-weight: 500;
+    color: #444;
+}
+
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    transition: all 0.2s ease-in-out;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #007B80;
+    box-shadow: 0 0 4px #007B80;
+    outline: none;
+}
+
+textarea {
+    resize: none;
+}
+
+/* 💰 Botón principal */
+#addMovementBtn {
+    background-color: #007B80;
+    border: none;
+    font-weight: 500;
+    padding: 10px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+#addMovementBtn:hover {
+    background-color: #244C53;
+}
+
+/* 📊 Tabla de movimientos */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: #007B80;
+    color: white;
+    font-weight: 500;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table tbody td {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f4f7ff;
+}
+
+/* 🗑️ Botón de eliminar */
+.btn-outline-danger {
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    transition: 0.2s;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* 📱 Responsividad */
+@media (max-width: 992px) {
+    .transaction-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .card {
+        margin-bottom: 1.5rem;
+    }
+
+    #addMovementBtn {
+        font-size: 0.95rem;
+    }
+
+    .table thead th, 
+    .table tbody td {
+        font-size: 0.9rem;
+        padding: 6px;
+    }
+}
+
+@media (max-width: 576px) {
+    .transaction-header h2 {
+        font-size: 1.3rem;
+    }
+
+    textarea {
+        font-size: 0.9rem;
+    }
+
+    #addMovementBtn {
+        padding: 8px;
+    }
+}
+
+
+/* Navbar que se adapta al sidebar automáticamente */
+.navbar-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+    transition: all 0.3s ease;
+}
+
+/* Navbar ocupa todo el ancho cuando sidebar oculto */
+.navbar-wrapper.full-width .navbar-custom {
+    width: 100%;
+    margin-left: 0;
+    border-radius: 0;
+}
+
+/* Navbar se ajusta cuando sidebar visible */
+.navbar-wrapper.with-sidebar .navbar-custom {
+    margin-left: 240px; /* ancho del sidebar */
+    width: calc(100% - 240px);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+/* Ajuste del contenido al mostrar sidebar */
+.content.sidebar-active {
+    margin-left: 240px; /* igual que el sidebar */
+    transition: margin-left 0.3s ease;
+}

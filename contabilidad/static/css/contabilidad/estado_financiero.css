@@ -1,0 +1,47 @@
+/* Estilos para las tarjetas de acciones */
+        .action-card {
+            background-color: #007B80; /* Color de las tarjetas */
+            color: #ebeff3;
+            padding: 30px;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            height: 150px; /* Altura fija para todas las tarjetas */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            text-decoration: none; /* Quita subrayado de enlace */
+            cursor: pointer;
+            margin-top: 40px;
+        }
+        .action-card:hover {
+            background-color: #79A3A1; /* Color al pasar el mouse */
+            color: #fff;
+            transform: translateY(-5px); /* Pequeño efecto de elevación */
+        }
+
+        /* Contenido Principal */
+        .content {
+            flex-grow: 1; /* El contenido ocupará todo el espacio restante */
+            padding: 20px;
+            top: 80px;
+            padding-top: 8px; /* Ajuste para el navbar superior */
+        }
+
+        /* Estilos para el título y subtítulo de bienvenida */
+        .welcome-header {
+            margin-top: 60px;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .welcome-header h2 {
+            font-size: 2.5rem;
+            color: #000000;
+            margin-bottom: 0.5rem;
+        }
+        .welcome-header p {
+            font-size: 1.5rem;
+            color: #000000;
+        }
