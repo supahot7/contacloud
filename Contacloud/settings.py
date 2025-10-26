@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+     'contabilidad',
 ]
 
 MIDDLEWARE = [
@@ -51,11 +52,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'Contacloud.urls'
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], # ¡Esta línea es crucial!
+        'APP_DIRS': True, # Esto permite a Django buscar templates dentro de las carpetas 'templates' de tus aplicaciones
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',

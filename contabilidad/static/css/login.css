@@ -7,7 +7,9 @@ body {
     min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
     margin: 0;
 }
-
+.label{
+    color: #E6E6E7;
+}
 .login-container {
     background-color: #E6E6E7; /* Fondo blanco para el contenedor principal */
     padding: 40px;
@@ -47,12 +49,13 @@ body {
 .form-group {
     margin-bottom: 15px;
     text-align: left;
+    color: #E6E6E7;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 7px;
-    color: #333;
+    color: #E6E6E7;
     font-weight: bold;
 }
 
