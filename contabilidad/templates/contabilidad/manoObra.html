@@ -1,0 +1,314 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Contabilidad de
+Costos{% endblock %} {% block content %}
+<link rel="stylesheet" href="{% static 'css/contabilidad/manoObra.css' %}" />
+
+<div class="container py-4">
+  <!-- Header -->
+  <div class="header-section mb-4">
+    <h1 class="display-5">Contabilidad de Costos</h1>
+    <p class="lead">
+      Administración de costos, mano de obra y cálculo de Tasa CIF
+    </p>
+  </div>
+
+  <!-- Tabs de Navegación -->
+  <ul class="nav nav-tabs mb-4" id="costosTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link active"
+        id="mano-obra-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#mano-obra"
+        type="button"
+      >
+        Mano de Obra
+      </button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="cif-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#cif"
+        type="button"
+      >
+        Costos Indirectos
+      </button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="resumen-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#resumen"
+        type="button"
+      >
+        Cálculo Tasa CIF
+      </button>
+    </li>
+  </ul>
+
+  <!-- Contenido de Tabs -->
+  <div class="tab-content" id="costosTabsContent">
+    <!-- TAB: MANO DE OBRA -->
+    <div class="tab-pane fade show active" id="mano-obra" role="tabpanel">
+      <div class="cost-card">
+        <div class="card-header-custom">
+          <h3>Registro de Mano de Obra</h3>
+        </div>
+
+        <!-- Formulario -->
+        <form id="formManoObra" class="cost-form">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Nombre del Trabajador</label>
+              <input
+                type="text"
+                class="form-control"
+                name="nombre_trabajador"
+                placeholder="Ingrese nombre completo"
+                required
+              />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Cargo</label>
+              <input
+                type="text"
+                class="form-control"
+                name="cargo"
+                placeholder="Ej: Operario, Supervisor"
+                required
+              />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Costo Mensual</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="number"
+                  class="form-control"
+                  name="costo_mensual"
+                  step="0.01"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Fecha</label>
+              <input type="date" class="form-control" name="fecha" required />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Observaciones</label>
+              <input
+                type="text"
+                class="form-control"
+                name="observaciones"
+                placeholder="Tiempo completo/parcial"
+              />
+            </div>
+
+            <div class="col-12">
+              <button type="submit" class="btn btn-success btn-lg w-100">
+                + Agregar Registro
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Tabla Mano de Obra -->
+        <div class="table-responsive mt-4">
+          <table class="table table-hover align-middle cost-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Cargo</th>
+                <th>Costo Mensual</th>
+                <th>Observaciones</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for trabajador in mano_obra %}
+              <tr>
+                <td>{{ trabajador.nombre_trabajador }}</td>
+                <td>{{ trabajador.cargo }}</td>
+                <td>${{ trabajador.costo_mensual|floatformat:2 }}</td>
+                <td>{{ trabajador.observaciones }}</td>
+                <td>{{ trabajador.fecha }}</td>
+                <td>
+                  <button class="btn btn-sm btn-warning">✏️</button>
+                  <button class="btn btn-sm btn-danger">🗑️</button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="text-center text-muted">
+                  No hay registros aún
+                </td>
+              </tr>
+              {% endfor %}
+
+              <tr class="table-warning total-row">
+                <td colspan="2"><strong>Total MOD</strong></td>
+                <td colspan="4">
+                  <strong>${{ total_mod|floatformat:2 }}</strong>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: COSTOS INDIRECTOS -->
+    <div class="tab-pane fade" id="cif" role="tabpanel">
+      <div class="cost-card">
+        <div class="card-header-custom">
+          <h3>Costos Indirectos de Fabricación (CIF)</h3>
+        </div>
+
+        <!-- Formulario CIF -->
+        <form id="formCIF" class="cost-form">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Concepto</label>
+              <input
+                type="text"
+                class="form-control"
+                name="concepto"
+                placeholder="Ej: Energía eléctrica"
+                required
+              />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Categoría</label>
+              <select name="categoria" class="form-select" required>
+                <option value="">Seleccione...</option>
+                <option>Servicios</option>
+                <option>Mantenimiento</option>
+                <option>Depreciación</option>
+                <option>Seguros</option>
+                <option>Otros</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Monto</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="number"
+                  class="form-control"
+                  name="monto"
+                  step="0.01"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Fecha</label>
+              <input type="date" class="form-control" name="fecha" required />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Descripción</label>
+              <input
+                type="text"
+                class="form-control"
+                name="descripcion"
+                placeholder="Detalles adicionales"
+              />
+            </div>
+
+            <div class="col-12">
+              <button type="submit" class="btn btn-success btn-lg w-100">
+                + Agregar CIF
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Tabla CIF -->
+        <div class="table-responsive mt-4">
+          <table class="table table-hover align-middle cost-table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Categoría</th>
+                <th>Monto</th>
+                <th>Descripción</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cif in cifs %}
+              <tr>
+                <td>{{ cif.concepto }}</td>
+                <td>{{ cif.categoria }}</td>
+                <td>${{ cif.monto|floatformat:2 }}</td>
+                <td>{{ cif.descripcion }}</td>
+                <td>{{ cif.fecha }}</td>
+                <td>
+                  <button class="btn btn-sm btn-warning">✏️</button>
+                  <button class="btn btn-sm btn-danger">🗑️</button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="text-center text-muted">
+                  No hay registros aún
+                </td>
+              </tr>
+              {% endfor %}
+
+              <tr class="table-info total-row">
+                <td colspan="2"><strong>Total CIF</strong></td>
+                <td colspan="4">
+                  <strong>${{ total_cif|floatformat:2 }}</strong>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: RESUMEN -->
+    <div class="tab-pane fade" id="resumen" role="tabpanel">
+      <div class="container text-center">
+        <h1 class="mb-4">Cálculo de Tasa CIF</h1>
+
+        <div class="card card-blue">
+          <div class="card-label">Total CIF</div>
+          <div class="card-value">${{ total_cif|floatformat:2 }}</div>
+          <div class="card-description">Costos Indirectos de Fabricación</div>
+        </div>
+
+        <div class="card card-green">
+          <div class="card-label">Total MOD</div>
+          <div class="card-value">${{ total_mod|floatformat:2 }}</div>
+          <div class="card-description">Mano de Obra Directa</div>
+        </div>
+
+        <div class="card card-purple">
+          <div class="card-label">Tasa CIF</div>
+          <div class="card-value">{{ tasa_cif|floatformat:2 }}%</div>
+          <div class="card-description">(Total CIF / Total MOD) × 100</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

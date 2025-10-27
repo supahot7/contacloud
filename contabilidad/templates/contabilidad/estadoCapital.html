@@ -1,0 +1,96 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Estado de Capital -
+Estados Financieros{% endblock %} {% block content %}
+<link
+  rel="stylesheet"
+  href="{% static 'css/contabilidad/estadoCapital.css' %}"
+/>
+
+<div class="container">
+  <div class="filtros">
+    <!-- Estado de Capital -->
+    <div class="estado-container">
+      <div class="estado-title">
+        <h2>ESTADO DE CAPITAL</h2>
+        <p>Período: {{ fecha_inicio }} al {{ fecha_fin }}</p>
+      </div>
+
+      <div class="filtros-grid">
+        <div class="form-group">
+          <label>Fecha Inicial</label>
+          <input type="date" value="{{ fecha_inicio }}" />
+        </div>
+        <div class="form-group">
+          <label>Fecha Final</label>
+          <input type="date" value="{{ fecha_fin }}" />
+        </div>
+        <div class="form-group">
+          <button class="btn-generar">Generar Reporte</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="estado-table-container">
+      <table class="estado-table">
+        <thead>
+          <tr>
+            <th>Cuenta</th>
+            <th class="text-end">Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- CAPITAL INICIAL -->
+          <tr class="group-header table-primary">
+            <td colspan="2">CAPITAL INICIAL</td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">{{ capital_inicial.nombre }}</td>
+            <td class="text-end">${{ capital_inicial.monto|floatformat:2 }}</td>
+          </tr>
+
+          <!-- Aumentos al Capital -->
+          <tr class="group-header table-success">
+            <td colspan="2">AUMENTOS AL CAPITAL</td>
+          </tr>
+          {% for aumento in aumentos_capital %}
+          <tr class="account-row">
+            <td class="cuenta-item">{{ aumento.nombre }}</td>
+            <td class="text-end">${{ aumento.monto|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="total-row table-success">
+            <td>TOTAL AUMENTOS</td>
+            <td class="text-end">${{ total_aumentos|floatformat:2 }}</td>
+          </tr>
+
+          <!-- Disminuciones al Capital -->
+          <tr class="group-header table-danger">
+            <td colspan="2">DISMINUCIONES AL CAPITAL</td>
+          </tr>
+          {% for disminucion in disminuciones_capital %}
+          <tr class="account-row">
+            <td class="cuenta-item">{{ disminucion.nombre }}</td>
+            <td class="text-end">${{ disminucion.monto|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="total-row table-danger">
+            <td>TOTAL DISMINUCIONES</td>
+            <td class="text-end">${{ total_disminuciones|floatformat:2 }}</td>
+          </tr>
+
+          <!-- Capital Final (positivo o negativo) -->
+          <tr class="total-row {{ clase_capital }}">
+            <td>{{ nombre_capital_final }}</td>
+            <td class="text-end">${{ capital_final|floatformat:2 }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Estado del reporte -->
+    <div class="balance-status">
+      <div class="badge-success">✓ Estado Generado Correctamente</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

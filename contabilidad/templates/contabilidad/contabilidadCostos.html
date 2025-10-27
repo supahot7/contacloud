@@ -1,0 +1,27 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Panel Principal -
+ContaCloud{% endblock %} {% block content %}
+<link
+  rel="stylesheet"
+  href="{% static 'css/contabilidad/contabilidadCostos.css' %}"
+/>
+
+<div class="container-centered">
+  <div class="financial-section-header">
+    <h2>CONTABILIDAD DE COSTOS</h2>
+    <p>Administración de costos, mano de obra y cálculo CIF</p>
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center mt-4">
+    <div class="col">
+      <a href="#" class="action-card">Mano de Obra</a>
+    </div>
+    <div class="col">
+      <a href="#" class="action-card">Costos Indirectos</a>
+    </div>
+    <div class="col">
+      <a href="#" class="action-card">Cálculo de Tasa CIF</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

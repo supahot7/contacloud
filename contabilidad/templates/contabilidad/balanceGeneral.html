@@ -1,0 +1,148 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Balance General -
+Estados Financieros{% endblock %} {% block content %}
+<!-- Enlace al CSS externo -->
+<link
+  rel="stylesheet"
+  href="{% static 'css/contabilidad/balanceGeneral.css' %}"
+/>
+
+<div class="container">
+  <div class="filtros">
+    <!-- Balance General -->
+    <div class="balance-container">
+      <div class="balance-title">
+        <h2>BALANCE GENERAL</h2>
+        <p>Período: 2025-01-01 al 2025-10-26</p>
+      </div>
+      <div class="filtros-grid">
+        <div class="form-group">
+          <label> Fecha Inicial</label>
+          <input type="date" value="2025-01-01" />
+        </div>
+        <div class="form-group">
+          <label> Fecha Final</label>
+          <input type="date" value="2025-10-26" />
+        </div>
+        <div class="form-group">
+          <button class="btn-generar">Generar Reporte</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="balance-table-container">
+      <table class="balance-table">
+        <thead>
+          <tr>
+            <th>Cuenta</th>
+            <th class="text-end col-debe">Debe</th>
+            <th class="text-end col-haber">Haber</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- ACTIVOS -->
+          <tr class="group-header table-primary">
+            <td colspan="3">ACTIVOS</td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Caja</td>
+            <td class="text-end">$45,000.00</td>
+            <td></td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Banco</td>
+            <td class="text-end">$32,000.00</td>
+            <td></td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Cuentas por Cobrar</td>
+            <td class="text-end">$28,000.00</td>
+            <td></td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Inventarios</td>
+            <td class="text-end">$35,000.00</td>
+            <td></td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Propiedad, Planta y Equipo</td>
+            <td class="text-end">$150,000.00</td>
+            <td></td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Depreciación Acumulada</td>
+            <td class="text-end">-$30,000.00</td>
+            <td></td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Inversiones a Largo Plazo</td>
+            <td class="text-end">$25,000.00</td>
+            <td></td>
+          </tr>
+
+          <!-- PASIVOS -->
+          <tr class="group-header table-danger">
+            <td colspan="3">PASIVOS</td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Cuentas por pagar</td>
+            <td></td>
+            <td class="text-end">$25,000.00</td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Préstamos Corto Plazo</td>
+            <td></td>
+            <td class="text-end">$15,000.00</td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Impuestos por Pagar</td>
+            <td></td>
+            <td class="text-end">$8,000.00</td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Préstamos Largo Plazo</td>
+            <td></td>
+            <td class="text-end">$80,000.00</td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Hipotecas por Pagar</td>
+            <td></td>
+            <td class="text-end">$45,000.00</td>
+          </tr>
+
+          <!-- CAPITAL -->
+          <tr class="group-header table-success">
+            <td colspan="3">CAPITAL</td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Capital social</td>
+            <td></td>
+            <td class="text-end">$75,000.00</td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Utilidades Retenidas</td>
+            <td></td>
+            <td class="text-end">$30,000.00</td>
+          </tr>
+          <tr class="account-row">
+            <td class="cuenta-item">Reserva Legal</td>
+            <td></td>
+            <td class="text-end">$12,000.00</td>
+          </tr>
+
+          <!-- TOTAL -->
+          <tr class="total-row">
+            <td>TOTAL</td>
+            <td class="text-end">$285,000.00</td>
+            <td class="text-end">$285,000.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Verificación de balance -->
+    <div class="balance-status">
+      <div class="badge-success">✓ Balance Cuadrado</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Panel Principal -
+ContaCloud{% endblock %} {% block content %}
+<link
+  rel="stylesheet"
+  href="{% static 'css/contabilidad/estadosFinancieros.css' %}"
+/>
+
+<div class="container-centered">
+  <div class="financial-section-header">
+    <h2>ESTADOS FINANCIEROS</h2>
+    <p>Seleccione el reporte financiero que desea consultar</p>
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center mt-4">
+    <div class="col">
+      <a href="#" class="action-card">Balance General</a>
+    </div>
+    <div class="col">
+      <a href="#" class="action-card">Estado de Resultados</a>
+    </div>
+    <div class="col">
+      <a href="#" class="action-card">Estado de Capital</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

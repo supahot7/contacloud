@@ -1,0 +1,106 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Estado de
+Resultados - Estados Financieros{% endblock %} {% block content %}
+<link
+  rel="stylesheet"
+  href="{% static 'css/contabilidad/estadoResultados.css' %}"
+/>
+
+<div class="container">
+  <div class="filtros">
+    <!-- Estado de Resultados -->
+    <div class="estado-container">
+      <div class="estado-title">
+        <h2>ESTADO DE RESULTADOS</h2>
+        <p>Período: {{ fecha_inicio }} al {{ fecha_fin }}</p>
+      </div>
+      <div class="filtros-grid">
+        <div class="form-group">
+          <label> Fecha Inicial</label>
+          <input type="date" value="{{ fecha_inicio }}" />
+        </div>
+        <div class="form-group">
+          <label> Fecha Final</label>
+          <input type="date" value="{{ fecha_fin }}" />
+        </div>
+        <div class="form-group">
+          <button class="btn-generar">Generar Reporte</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="estado-table-container">
+      <table class="estado-table">
+        <thead>
+          <tr>
+            <th>Cuenta</th>
+            <th class="text-end col-monto">Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Ingresos-->
+          <tr class="group-header table-primary">
+            <td colspan="2">INGRESOS</td>
+          </tr>
+          {% for ingreso in ingresos %}
+          <tr class="account-row">
+            <td class="cuenta-item">{{ ingreso.nombre }}</td>
+            <td class="text-end">${{ ingreso.monto|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="total-row table-primary">
+            <td>TOTAL INGRESOS</td>
+            <td class="text-end">${{ total_ingresos|floatformat:2 }}</td>
+          </tr>
+
+          <!-- Costos -->
+          <tr class="group-header table-warning">
+            <td colspan="2">COSTOS</td>
+          </tr>
+          {% for costo in costos %}
+          <tr class="account-row">
+            <td class="cuenta-item">{{ costo.nombre }}</td>
+            <td class="text-end">${{ costo.monto|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="total-row table-warning">
+            <td>TOTAL COSTOS</td>
+            <td class="text-end">${{ total_costos|floatformat:2 }}</td>
+          </tr>
+
+          <!-- Utilidad bruta -->
+          <tr class="total-row table-success">
+            <td>UTILIDAD BRUTA</td>
+            <td class="text-end">${{ utilidad_bruta|floatformat:2 }}</td>
+          </tr>
+
+          <!-- Gastos -->
+          <tr class="group-header table-danger">
+            <td colspan="2">GASTOS OPERATIVOS</td>
+          </tr>
+          {% for gasto in gastos %}
+          <tr class="account-row">
+            <td class="cuenta-item">{{ gasto.nombre }}</td>
+            <td class="text-end">${{ gasto.monto|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="total-row table-danger">
+            <td>TOTAL GASTOS</td>
+            <td class="text-end">${{ total_gastos|floatformat:2 }}</td>
+          </tr>
+
+          <!-- Utilidad o pérdida neta -->
+          <tr class="total-row {{ clase_utilidad }}">
+            <td>{{ nombre_utilidad }}</td>
+            <td class="text-end">${{ utilidad_neta|floatformat:2 }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Para verificar el estado -->
+    <div class="balance-status">
+      <div class="badge-success">✓ Estado Generado Correctamente</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
