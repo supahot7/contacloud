@@ -37,7 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-     'contabilidad',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'contabilidad',
+    'usuarios',
 ]
 
 MIDDLEWARE = [
@@ -57,7 +60,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')], # ¡Esta línea es crucial!
+        'DIRS': [os.path.join(BASE_DIR, 'Contacloud', 'templates')], # ¡Esta línea es crucial!
         'APP_DIRS': True, # Esto permite a Django buscar templates dentro de las carpetas 'templates' de tus aplicaciones
         'OPTIONS': {
             'context_processors': [
@@ -101,6 +104,14 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+AUTH_USER_MODEL = 'usuarios.Usuario'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
 
 
 # Internationalization

@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacloud - Iniciar Sesión</title>
+    <link rel="stylesheet" href="{% static '/css/login.css' %}">
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.2.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Contacloud <span class="logo" ></span><i class="fi fi-sr-stats"></i></h1>
+       
+        </div>
+        <div class="login-form-box">
+            <h2>Iniciar sesión</h2>
+            <form method="post" action=""> {# action="" para enviar al mismo URL por ahora #}
+                {% csrf_token %} {# ¡Importante para seguridad en Django! #}
+                <div class="form-group">
+                    <label for="id_username color">Usuario:</label>
+                    <input type="text" id="id_username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="id_password">Contraseña:</label>
+                    <input type="password" id="id_password" name="password" required>
+                </div>
+                <button type="submit" class="btn-ingresar">Ingresar</button>
+            </form>
+        </div>
+    </div>
+    <script>
+    // 1. Obtener una referencia al formulario
+    const loginForm = document.querySelector('form');
+
+    // 2. Escuchar el evento de envío
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault(); // <-- ¡CLAVE! Previene el envío tradicional del navegador
+
+        // 3. Obtener los datos del formulario
+        const username = document.getElementById('id_username').value;
+        const password = document.getElementById('id_password').value;
+        
+        // 4. Llamada a la API de Login (Tu endpoint JWT)
+        fetch('http://127.0.0.1:8000/api/token/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // No necesitamos el CSRF token aquí porque JWT no usa sesiones
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.access) {
+                // ÉXITO: Guardar los tokens y redirigir
+                localStorage.setItem('access_token', data.access);
+                localStorage.setItem('refresh_token', data.refresh);
+                window.location.href = '/dashboard/'; // Redirigir al dashboard
+            } else {
+                // ERROR: Mostrar un mensaje
+                alert('Error al iniciar sesión. Verifica tus credenciales.');
+            }
+        })
+        .catch(error => {
+            console.error('Error de red:', error);
+            alert('Error de conexión con el servidor.');
+        });
+    });
+</script>
+</body>
+</html>
