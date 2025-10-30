@@ -7,18 +7,20 @@
         padding: 20px;          /* espacio interno */
     }
 
-    /* ==============================
-    Sección principal destacada
-    ============================== */
-    .financial-section-header {
-        background: linear-gradient(135deg, #007B80 0%,  #dee4e4 100%);
-        color: #000000;
-        padding: 40px;
-        text-align: center;
-        margin: 10px 0 30px;
-        border-radius: 12px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-    }
+/* ==============================
+   Header
+   ============================== */
+.display-5 {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.lead {
+    color: #666;
+    font-weight: 500;
+}
+
 
     .financial-section {
         color: #fff;
