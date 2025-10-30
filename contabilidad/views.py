@@ -57,13 +57,6 @@ def estado_capital(request):
     return render(request, 'contabilidad/estadoCapital.html')
 
 # -------------------------
-# Estado de Capital
-# -------------------------
-
-def contabilidad_costos(request):
-    return render(request, 'contabilidad/contabilidadCostos.html')
-
-# -------------------------
 # Mano de Obra
 # -------------------------
 
@@ -78,3 +71,9 @@ def inventario_licencias(request):
     return render(request, 'contabilidad/inventarioLicencias.html')
 
 
+# -------------------------
+# Inventario de Licencias
+# -------------------------
+
+def planilla(request):
+    return render(request, 'contabilidad/planilla.html')

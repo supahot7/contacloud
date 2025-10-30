@@ -1,259 +1,182 @@
-/* Contabilidad de Costos - Estilos */
-
-.header-section {
-    text-align: center;
-    padding: 30px;
-    background: linear-gradient(135deg, #007B80 0%, #dee4e4 100%);
-    border-radius: 15px;
-    color: rgb(0, 0, 0);
-    margin-bottom: 30px;
+/* Estilos para las tarjetas de resumen */
+.card {
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  background-color: #bfe5f0;
+  margin-bottom: 1rem;
 }
 
-.header-icon {
-    font-size: 4em;
-    margin-bottom: 15px;
-    animation: bounce 2s infinite;
+.card:hover {
+  transform: translateY(-5px);
 }
 
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+.btn-success {
+  background-color: #007b80 !important;
+  border-color: #007b80;
+  color: #ffffff;
 }
 
-.header-section h1 {
-    font-weight: 700;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-}
-
-/* Tabs personalizados */
-.nav-tabs {
-    border-bottom: 3px solid #e2e8f0;
-}
-
-.nav-tabs .nav-link {
-    color: #4a5568;
-    font-weight: 600;
-    font-size: 1.1em;
-    padding: 15px 25px;
-    border: none;
-    transition: all 0.3s ease;
-}
-
-.nav-tabs .nav-link:hover {
-    color: #2d3748;
-    background: #f7fafc;
-}
-
-.nav-tabs .nav-link.active {
-    color: #058daf;
-    background: white;
-    border-bottom: 3px solid #f59e0b;
-}
-
-/* Cards de costos */
-.cost-card {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    padding: 30px;
-}
-
-.card-header-custom {
-    border-bottom: 3px solid #0abcdb;
-    padding-bottom: 15px;
-    margin-bottom: 25px;
-}
-
-.card-header-custom h3 {
-    color: #2d3748;
-    font-weight: 700;
-    margin: 0;
-}
-
-/* Formularios */
-.cost-form {
-    background: #f7fafc;
-    padding: 25px;
-    border-radius: 12px;
-    margin-bottom: 30px;
+.btn-success:hover {
+  background-color: #244c53 !important;
+  border-color: #244c53;
 }
 
 .cost-form .form-label {
-    font-weight: 600;
-    color: #2d3748;
-    margin-bottom: 8px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 8px;
 }
 
 .cost-form .form-control,
 .cost-form .form-select {
-    border: 2px solid #cbd5e0;
-    border-radius: 8px;
-    padding: 12px 15px;
-    transition: all 0.3s ease;
+  border: 2px solid #cbe0cbff;
+  border-radius: 8px;
+  padding: 12px 15px;
+  transition: all 0.3s ease;
 }
 
 .cost-form .form-control:focus,
 .cost-form .form-select:focus {
-    border-color: #00afaf;
-    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+  border-color: #007b80;
+  box-shadow: 0 0 0 4px rgba(0, 123, 128, 0.1);
 }
 
-/* Tablas */
-.cost-table {
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.cost-table thead {
-    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-    color: white;
+.cost-form {
+  background: #f7fafc;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  border: 1px solid #e2e8f0;
 }
 
 .cost-table thead th {
-    padding: 18px 15px;
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 0.95em;
-    letter-spacing: 0.5px;
-}
-
-.cost-table tbody tr {
-    transition: all 0.2s ease;
-}
-
-.cost-table tbody tr:hover {
-    background: #f7fafc;
-    transform: translateX(5px);
+  background-color: #2c3034;
+  color: #ffffff;
+  text-align: center;
+  font-weight: 600;
+  padding: 0.75rem;
+  text-transform: uppercase;
+  font-size: 0.95em;
 }
 
 .cost-table tbody td {
-    padding: 15px;
-    color: #2d3748;
+  padding: 0.75rem;
+  text-align: center;
 }
 
-.total-row {
-    font-weight: 700;
-    font-size: 1.1em;
-    border-top: 3px solid #2d3748 !important;
+.text-muted {
+  color: #a0aec0 !important;
+  font-style: italic;
 }
 
-/* Cards de resumen */
-.summary-card {
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
+/* Estilos para el modal personalizado */
+.custom-modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease;
 }
 
-.summary-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+.custom-modal-content {
+  background-color: #ffffff;
+  margin: 10% auto;
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideDown 0.3s ease;
 }
 
-.card-mod {
-    background: linear-gradient(135deg, #fef3c7 0%, #ebff33 100%);
+.custom-modal-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
 }
 
-.card-mp {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+.custom-modal-content h3 {
+  color: #2d3748;
+  margin-bottom: 15px;
+  font-size: 24px;
+  font-weight: 600;
 }
 
-.card-cif {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+.custom-modal-content p {
+  color: #4a5568;
+  margin-bottom: 25px;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
-.summary-icon {
-    font-size: 4em;
-    margin-bottom: 15px;
+.custom-modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 
-.summary-label {
-    font-size: 1.1em;
-    color: #4a5568;
-    font-weight: 600;
-    margin-bottom: 10px;
+.modal-btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.summary-value {
-    font-size: 2.5em;
-    font-weight: 700;
-    color: #2d3748;
+.modal-btn-primary {
+  background-color: #007b80;
+  color: white;
 }
 
-/* Total de producción */
-.total-produccion {
-    text-align: center;
-    padding: 40px;
-    background: linear-gradient(135deg, #04c1e2 0%, #d95a06 100%);
-    border-radius: 15px;
-    color: white;
+.modal-btn-primary:hover {
+  background-color: #244c53;
+  transform: translateY(-2px);
 }
 
-.total-produccion h2 {
-    font-size: 2em;
-    margin-bottom: 15px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+.modal-btn-secondary {
+  background-color: #e2e8f0;
+  color: #2d3748;
 }
 
-.total-amount {
-    font-size: 4em;
-    font-weight: 700;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+.modal-btn-secondary:hover {
+  background-color: #cbd5e0;
 }
 
-/* Botones de exportación */
-.export-buttons {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
+.modal-btn-danger {
+  background-color: #e53e3e;
+  color: white;
 }
 
-.export-buttons .btn {
-    padding: 15px 40px;
-    font-size: 1.2em;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.modal-btn-danger:hover {
+  background-color: #c53030;
+  transform: translateY(-2px);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .header-section {
-        padding: 20px;
-    }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 
-    .header-icon {
-        font-size: 3em;
-    }
-
-    .nav-tabs .nav-link {
-        font-size: 0.95em;
-        padding: 12px 15px;
-    }
-
-    .cost-card {
-        padding: 20px;
-    }
-
-    .cost-form {
-        padding: 20px;
-    }
-
-    .summary-value {
-        font-size: 2em;
-    }
-
-    .total-amount {
-        font-size: 2.5em;
-    }
-
-    .export-buttons {
-        flex-direction: column;
-    }
-
-    .export-buttons .btn {
-        width: 100%;
-    }
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

@@ -1,139 +1,557 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'base.html' %} {% load static %} {% block title %}Catálogo de
+Cuentas{% endblock %} {% block content %}
 
-{% block title %}Catálogo de Cuentas{% endblock %}
-
-{% block content %}
 <div class="container py-4">
+  <!-- Header -->
+  <div class="mb-4 text-center">
+    <h1 class="display-5">Catálogo de Cuentas</h1>
+    <p class="lead">Gestión del plan de cuentas contables</p>
+  </div>
 
-    <!-- Header -->
-    <div class="mb-4 text-center">
-        <h1 class="display-5">Catálogo de Cuentas</h1>
-        <p class="lead">Gestión del plan de cuentas contables</p>
+  <!-- Controles -->
+  <div class="row mb-3 g-2 align-items-center">
+    <div class="col-md-4">
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input
+          type="text"
+          id="buscar"
+          class="form-control"
+          placeholder="Buscar cuenta o código"
+        />
+      </div>
     </div>
-
-    <!-- Controles -->
-    <div class="row mb-3 g-2 align-items-center">
-        <div class="col-md-4">
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" id="buscar" class="form-control" placeholder=" Buscar cuenta o código">
-            </div>
-        </div>
-        <div class="col-md-3">
-            <select id="filtro-tipo" class="form-select">
-                <option value="todos">Todos</option>
-                <option value="activo">Activo</option>
-                <option value="pasivo">Pasivo</option>
-                <option value="capital">Capital</option>
-                <option value="ingresos">Ingresos</option>
-                <option value="gastos">Gastos</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <button class="btn btn-primary w-100">+ Nueva Cuenta</button>
-        </div>
+    <div class="col-md-3">
+      <select id="filtro-tipo" class="form-select">
+        <option value="todos">Todos</option>
+        <option value="activo">Activo</option>
+        <option value="pasivo">Pasivo</option>
+        <option value="capital">Capital</option>
+        <option value="ingresos">Ingresos</option>
+        <option value="gastos">Gastos</option>
+      </select>
     </div>
-
-    <!-- Tabla de cuentas -->
-    <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Tipo</th>
-                    <th>Descripción</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-
-                {# 🔹 Bucle para usar con la base de datos #}
-                
-                {% for cuenta in cuentas %}
-                <tr>
-                    <td>{{ cuenta.codigo }}</td>
-                    <td>{{ cuenta.nombre }}</td>
-                    <td>{{ cuenta.tipo }}</td>
-                    <td>{{ cuenta.descripcion }}</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center">No hay cuentas registradas.</td>
-                </tr>
-                {% endfor %}
-                
-
-                {# 🔹 Datos quemados (solo para diseño visual) #}
-                <tr>
-                    <td>1101</td>
-                    <td>Caja General</td>
-                    <td>Activo</td>
-                    <td>Efectivo disponible en caja</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>1102</td>
-                    <td>Bancos Nacionales</td>
-                    <td>Activo</td>
-                    <td>Depósitos en cuentas corrientes</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>2101</td>
-                    <td>Proveedores</td>
-                    <td>Pasivo</td>
-                    <td>Deudas con proveedores locales</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>3101</td>
-                    <td>Capital Social</td>
-                    <td>Capital</td>
-                    <td>Aportaciones de los socios</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>4101</td>
-                    <td>Ingresos por Ventas</td>
-                    <td>Ingresos</td>
-                    <td>Juan Pérez - 20/09/2025</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>5101</td>
-                    <td>Gastos de Oficina</td>
-                    <td>Gastos</td>
-                    <td>Consumo de papelería y suministros</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
-                    </td>
-                </tr>
-
-            </tbody>
-        </table>
+    <div class="col-md-2">
+      <button class="btn btn-primary w-100" id="btnNuevaCuenta">
+        + Nueva Cuenta
+      </button>
     </div>
+  </div>
 
+  <!-- Tabla de cuentas -->
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Descripción</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaCuentas">
+        <tr>
+          <td colspan="5" class="text-center">No hay cuentas registradas.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
+
+<!-- Modal para agregar/editar cuenta -->
+<div id="modalCuenta" class="modal-overlay" style="display: none">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2 id="modalTitulo">Nueva Cuenta</h2>
+      <button type="button" class="modal-close" id="btnCerrarModal">
+        &times;
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="formCuenta">
+        <div class="form-group">
+          <label for="codigo">Código <span class="required">*</span></label>
+          <input
+            type="text"
+            id="codigo"
+            class="form-control"
+            placeholder="Ej: 1101, 2101, 3101..."
+            required
+          />
+          <small class="form-text"
+            >Formato: 4 dígitos (1xxx=Activo, 2xxx=Pasivo, 3xxx=Capital,
+            4xxx=Ingresos, 5xxx=Gastos)</small
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="nombre"
+            >Nombre de la Cuenta <span class="required">*</span></label
+          >
+          <input
+            type="text"
+            id="nombre"
+            class="form-control"
+            placeholder="Ej: Caja General"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="tipo"
+            >Tipo de Cuenta <span class="required">*</span></label
+          >
+          <select id="tipo" class="form-control" required>
+            <option value="">-- Seleccione un tipo --</option>
+            <option value="Activo">Activo</option>
+            <option value="Pasivo">Pasivo</option>
+            <option value="Capital">Capital</option>
+            <option value="Ingresos">Ingresos</option>
+            <option value="Gastos">Gastos</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="descripcion">Descripción</label>
+          <textarea
+            id="descripcion"
+            class="form-control"
+            rows="3"
+            placeholder="Descripción de la cuenta contable"
+          ></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" id="btnCancelar">
+        Cancelar
+      </button>
+      <button type="button" class="btn-primary" id="btnGuardarCuenta">
+        Guardar Cuenta
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ==============================
+   Estilos del Modal
+   ============================== */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+
+  .modal-container {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #007b80;
+    color: #fff;
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #fff;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+  }
+
+  .modal-close:hover {
+    opacity: 0.8;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid #dee2e6;
+  }
+
+  /* ==============================
+   Formulario
+   ============================== */
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: #007b80;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 128, 0.25);
+  }
+
+  .form-text {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+
+  .required {
+    color: #dc3545;
+  }
+
+  /* ==============================
+   Botones del modal
+   ============================== */
+  .btn-secondary {
+    background-color: #6c757d;
+    border: none;
+    color: #fff;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-secondary:hover {
+    background-color: #5a6268;
+  }
+
+  @media (max-width: 768px) {
+    .modal-container {
+      width: 95%;
+    }
+  }
+</style>
+
+<script>
+  // ==============================
+  // Variables globales
+  // ==============================
+  let cuentas = [
+    {
+      codigo: "1101",
+      nombre: "Caja General",
+      tipo: "Activo",
+      descripcion: "Efectivo disponible en caja",
+    },
+    {
+      codigo: "1102",
+      nombre: "Bancos Nacionales",
+      tipo: "Activo",
+      descripcion: "Depósitos en cuentas corrientes",
+    },
+    {
+      codigo: "2101",
+      nombre: "Proveedores",
+      tipo: "Pasivo",
+      descripcion: "Deudas con proveedores locales",
+    },
+    {
+      codigo: "3101",
+      nombre: "Capital Social",
+      tipo: "Capital",
+      descripcion: "Aportaciones de los socios",
+    },
+    {
+      codigo: "4101",
+      nombre: "Ingresos por Ventas",
+      tipo: "Ingresos",
+      descripcion: "Ventas de productos y servicios",
+    },
+    {
+      codigo: "5101",
+      nombre: "Gastos de Oficina",
+      tipo: "Gastos",
+      descripcion: "Consumo de papelería y suministros",
+    },
+  ];
+
+  let indiceEdicion = -1;
+
+  // ==============================
+  // Función para renderizar la tabla
+  // ==============================
+  function renderizarTabla(cuentasFiltradas = cuentas) {
+    const tbody = document.getElementById("tablaCuentas");
+
+    if (cuentasFiltradas.length === 0) {
+      tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center" style="padding: 2rem; color: #6c757d;">
+          No hay cuentas registradas. Haz clic en "Nueva Cuenta" para agregar una.
+        </td>
+      </tr>
+    `;
+      return;
+    }
+
+    tbody.innerHTML = cuentasFiltradas
+      .map((cuenta, index) => {
+        const indiceReal = cuentas.indexOf(cuenta);
+        return `
+    <tr>
+      <td>${cuenta.codigo}</td>
+      <td>${cuenta.nombre}</td>
+      <td><span class="badge-tipo badge-${cuenta.tipo.toLowerCase()}">${
+          cuenta.tipo
+        }</span></td>
+      <td>${cuenta.descripcion}</td>
+      <td class="text-center">
+        <button
+          type="button"
+          class="btn btn-sm btn-warning me-1"
+          onclick="editarCuenta(${indiceReal})"
+          title="Editar"
+        >
+          ✏️ Editar
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm btn-danger"
+          onclick="eliminarCuenta(${indiceReal})"
+          title="Eliminar"
+        >
+          🗑️ Eliminar
+        </button>
+      </td>
+    </tr>
+  `;
+      })
+      .join("");
+  }
+
+  // ==============================
+  // Función para abrir el modal
+  // ==============================
+  function abrirModal(esNuevo = true, index = -1) {
+    const modal = document.getElementById("modalCuenta");
+    const titulo = document.getElementById("modalTitulo");
+    const form = document.getElementById("formCuenta");
+
+    indiceEdicion = index;
+
+    if (esNuevo) {
+      titulo.textContent = "Nueva Cuenta";
+      form.reset();
+    } else {
+      titulo.textContent = "Editar Cuenta";
+      const cuenta = cuentas[index];
+      document.getElementById("codigo").value = cuenta.codigo;
+      document.getElementById("nombre").value = cuenta.nombre;
+      document.getElementById("tipo").value = cuenta.tipo;
+      document.getElementById("descripcion").value = cuenta.descripcion;
+    }
+
+    modal.style.display = "flex";
+  }
+
+  // ==============================
+  // Función para cerrar el modal
+  // ==============================
+  function cerrarModal() {
+    document.getElementById("modalCuenta").style.display = "none";
+    document.getElementById("formCuenta").reset();
+    indiceEdicion = -1;
+  }
+
+  // ==============================
+  // Función para validar código
+  // ==============================
+  function validarCodigo(codigo) {
+    // Validar que sea un número de 4 dígitos
+    if (!/^\d{4}$/.test(codigo)) {
+      alert("El código debe tener exactamente 4 dígitos.");
+      return false;
+    }
+
+    // Validar que no exista ya (solo para nuevas cuentas)
+    if (indiceEdicion === -1 && cuentas.some((c) => c.codigo === codigo)) {
+      alert("Ya existe una cuenta con ese código.");
+      return false;
+    }
+
+    return true;
+  }
+
+  // ==============================
+  // Función para guardar cuenta
+  // ==============================
+  function guardarCuenta() {
+    const codigo = document.getElementById("codigo").value.trim();
+    const nombre = document.getElementById("nombre").value.trim();
+    const tipo = document.getElementById("tipo").value;
+    const descripcion =
+      document.getElementById("descripcion").value.trim() || "Sin descripción";
+
+    if (!codigo || !nombre || !tipo) {
+      alert("Por favor, complete todos los campos obligatorios.");
+      return;
+    }
+
+    if (!validarCodigo(codigo)) {
+      return;
+    }
+
+    const cuenta = {
+      codigo,
+      nombre,
+      tipo,
+      descripcion,
+    };
+
+    if (indiceEdicion >= 0) {
+      cuentas[indiceEdicion] = cuenta;
+      alert("¡Cuenta actualizada exitosamente!");
+    } else {
+      cuentas.push(cuenta);
+      alert("¡Cuenta agregada exitosamente!");
+    }
+
+    // Ordenar cuentas por código
+    cuentas.sort((a, b) => a.codigo.localeCompare(b.codigo));
+
+    renderizarTabla();
+    cerrarModal();
+  }
+
+  // ==============================
+  // Función para editar cuenta
+  // ==============================
+  function editarCuenta(index) {
+    abrirModal(false, index);
+  }
+
+  // ==============================
+  // Función para eliminar cuenta
+  // ==============================
+  function eliminarCuenta(index) {
+    const cuenta = cuentas[index];
+
+    if (
+      confirm(
+        `¿Está seguro que desea eliminar la cuenta "${cuenta.codigo} - ${cuenta.nombre}"?`
+      )
+    ) {
+      cuentas.splice(index, 1);
+      renderizarTabla();
+      alert("¡Cuenta eliminada exitosamente!");
+    }
+  }
+
+  // ==============================
+  // Función de búsqueda
+  // ==============================
+  function buscarCuentas() {
+    const busqueda = document.getElementById("buscar").value.toLowerCase();
+    const filtro = document.getElementById("filtro-tipo").value.toLowerCase();
+
+    let cuentasFiltradas = cuentas;
+
+    // Filtrar por búsqueda
+    if (busqueda) {
+      cuentasFiltradas = cuentasFiltradas.filter(
+        (cuenta) =>
+          cuenta.codigo.toLowerCase().includes(busqueda) ||
+          cuenta.nombre.toLowerCase().includes(busqueda) ||
+          cuenta.descripcion.toLowerCase().includes(busqueda)
+      );
+    }
+
+    // Filtrar por tipo
+    if (filtro !== "todos") {
+      cuentasFiltradas = cuentasFiltradas.filter(
+        (cuenta) => cuenta.tipo.toLowerCase() === filtro
+      );
+    }
+
+    renderizarTabla(cuentasFiltradas);
+  }
+
+  // ==============================
+  // Inicialización
+  // ==============================
+  document.addEventListener("DOMContentLoaded", function () {
+    // Botón Nueva Cuenta
+    document
+      .getElementById("btnNuevaCuenta")
+      .addEventListener("click", () => abrirModal(true));
+
+    // Botones del modal
+    document
+      .getElementById("btnCerrarModal")
+      .addEventListener("click", cerrarModal);
+    document
+      .getElementById("btnCancelar")
+      .addEventListener("click", cerrarModal);
+    document
+      .getElementById("btnGuardarCuenta")
+      .addEventListener("click", guardarCuenta);
+
+    // Cerrar modal al hacer clic fuera
+    document
+      .getElementById("modalCuenta")
+      .addEventListener("click", function (e) {
+        if (e.target === this) {
+          cerrarModal();
+        }
+      });
+
+    // Búsqueda y filtros
+    document.getElementById("buscar").addEventListener("input", buscarCuentas);
+    document
+      .getElementById("filtro-tipo")
+      .addEventListener("change", buscarCuentas);
+
+    // Renderizar tabla inicial
+    renderizarTabla();
+  });
+</script>
+
 {% endblock %}

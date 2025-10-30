@@ -1,367 +1,432 @@
-/* Estado de Resultados - Estilos Responsivos */
-
+/* ==============================
+   Contenedor Principal
+   ============================== */
 .container {
     max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
 }
 
-.filtros {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
-
-.estado-container {
-    background: linear-gradient(135deg, #007B80 0%,  #dee4e4 100%);
-    padding: 40px;
-    color: rgb(0, 0, 0);
-}
-
-.estado-title {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.estado-title h2 {
-    font-size: 2.5em;
-    margin-bottom: 10px;
+/* ==============================
+   Header
+   ============================== */
+.display-5 {
     font-weight: 700;
-    letter-spacing: 2px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    color: #333;
+    margin-bottom: 10px;
 }
 
-.estado-title p {
-    font-size: 1.2em;
-    opacity: 0.95;
+.lead {
+    color: #666;
     font-weight: 500;
 }
 
+/* ==============================
+   Filtros Grid
+   ============================== */
 .filtros-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 20px;
-    align-items: end;
-    max-width: 900px;
-    margin: 0 auto;
+    background-color: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #CED4DA;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
 }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.form-group label {
+.filtros-grid .form-label {
+    font-weight: 600;
+    color: #333;
     margin-bottom: 8px;
-    font-weight: 600;
-    font-size: 1.05em;
 }
 
-.form-group input[type="date"] {
-    padding: 12px 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    font-size: 1em;
-    background: rgba(255, 255, 255, 0.95);
-    color: #2d3748;
-    font-weight: 600;
+.filtros-grid .form-control {
+    border: 1px solid #CED4DA;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+    padding: 10px 14px;
     transition: all 0.3s ease;
 }
 
-.form-group input[type="date"]:focus {
+.filtros-grid .form-control:focus {
+    border-color: #007B80;
+    background: #fff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 128, 0.25);
     outline: none;
-    border-color: white;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
 }
 
-.btn-generar {
-    padding: 14px 30px;
-    background: linear-gradient(135deg, #007B80 0%, #007B80 100%);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 1.1em;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 202, 175, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.btn-generar:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(56, 161, 105, 0.4);
-}
-
-.btn-generar:active {
-    transform: translateY(0);
-}
-
+/* ==============================
+   Contenedor de la tabla
+   ============================== */
 .estado-table-container {
-    padding: 40px;
+    max-width: 100%;
+    margin: 20px auto 0;
+    border: 1px solid #CED4DA;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    background-color: #fff;
+}
+
+.table-responsive {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
+/* ==============================
+   Tabla Estado de Capital
+   ============================== */
 .estado-table {
+    margin-bottom: 0 !important;
+    min-width: 600px;
     width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
-.estado-table thead {
-    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-    color: white;
-}
-
+/* ==============================
+   Encabezado de la tabla
+   ============================== */
 .estado-table thead th {
-    padding: 20px 15px;
-    font-size: 1.2em;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    background-color: #212529; /* Color de fondo personalizado */
+    color: #ffffff; /* Color del texto */
+    border-color: #357ABD; /* Borde del encabezado */
+    text-align: center; /* Centrar texto */
+    font-weight: 500;
+    padding: 0.75rem;
 }
 
 .estado-table thead th:first-child {
     text-align: left;
 }
 
-.text-end {
-    text-align: right;
+/* ==============================
+   Celdas de la tabla
+   ============================== */
+.estado-table tbody td {
+    padding: 0.5rem 0.75rem;
+    border-color: #dee2e6;
+    vertical-align: middle;
 }
 
-.estado-table tbody tr {
-    border-bottom: 1px solid #e2e8f0;
-    transition: background-color 0.2s ease;
-}
-
+/* ==============================
+   Fila de grupo (CAPITAL, AUMENTOS, DISMINUCIONES)
+   ============================== */
 .group-header {
-    font-weight: 700;
-    font-size: 1.3em;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-weight: bold;
+    color: #333;
+    padding-top: 1rem;
+    text-align: left;
 }
 
 .group-header td {
-    padding: 20px 15px;
-    color: rgb(0, 0, 0);
+    padding: 0.75rem !important;
 }
 
-.table-primary {
-    background: linear-gradient(135deg, #b7dcf5 0%, #a3daff 100%); /* Ingresos */
+/* Colores de grupo usando clases de Bootstrap */
+.table-primary.group-header {
+    background-color: #dbeafe;
+}
+.table-success.group-header {
+    background-color: #d1fae5;
+}
+.table-danger.group-header {
+    background-color: #fee2e2;
 }
 
-.table-warning {
-    background: linear-gradient(135deg, #b7dcf5 0%, #a3daff 100%); /* Costos */
-}
-
-.table-danger {
-    background: linear-gradient(135deg, #b7dcf5 0%, #a3daff 100%); /* Gastos */
-}
-
-.table-success {
-    background: linear-gradient(135deg, #b7dcf5 0%, #a3daff 100%); /* Utilidad neta pérdida */
-}
-
-.account-row {
-    transition: all 0.2s ease;
-}
-
-.account-row:hover {
-    background-color: #f7fafc;
-    transform: translateX(5px);
-}
-
+/* ==============================
+   Filas de cuentas
+   ============================== */
 .account-row td {
-    padding: 15px;
-    font-size: 1.05em;
+    padding: 0.5rem 0.75rem !important;
 }
 
 .cuenta-item {
     font-weight: 600;
-    color: #2d3748;
+    color: #333;
     padding-left: 30px !important;
 }
 
-.account-row .text-end {
-    font-weight: 700;
-    color: #1a202c;
+/* ==============================
+   Hover en filas de cuentas
+   ============================== */
+.account-row:hover {
+    background-color: #f0f8ff !important; /* Azul muy claro */
+    transition: background-color 0.2s ease;
 }
 
+/* ==============================
+   Fila de subtotales
+   ============================== */
+.subtotal-row {
+    font-weight: bold;
+    background-color: #f8f9fa;
+}
+
+.subtotal-row td {
+    padding: 0.65rem 0.75rem !important;
+    font-weight: bold;
+}
+
+.subtotal-row.table-success {
+    background-color: #d1fae5;
+}
+
+.subtotal-row.table-danger {
+    background-color: #fee2e2;
+}
+
+/* ==============================
+   Fila total
+   ============================== */
 .total-row {
-    font-weight: 700;
-    font-size: 1.3em;
+    border-top: 2px solid #000;
+    font-weight: bold;
+    background-color: #e6f7ff;
 }
 
 .total-row td {
-    padding: 25px 15px;
-    color: #1a202c;
-    border-top: 4px solid #2d3748;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    padding: 0.75rem !important;
+    font-weight: bold;
 }
 
-.balance-status {
-    padding: 30px 40px;
-    text-align: center;
-    background: #f7fafc;
-    border-top: 2px solid #e2e8f0;
+/* Alineación y negrita para los totales */
+.total-value {
+    font-weight: bold !important;
 }
 
+/* ==============================
+   Alineación del texto
+   ============================== */
+.text-end {
+    text-align: right !important;
+}
+
+.col-monto {
+    color: #007B80;
+}
+
+/* ==============================
+   Botones personalizados
+   ============================== */
+.btn-primary {
+    background-color: #007B80; /* Color de fondo */
+    border-color: #007B80; /* Borde */
+}
+
+.btn-primary:hover {
+    background-color: #C0D0EF; /* Fondo al pasar el mouse */
+    border-color: #C0D0EF;
+    color: #000;
+}
+
+.btn-warning {
+    background-color: #007B80 !important;
+    border-color: #007B80;
+    color: #E6E6E7; /* Texto claro */
+}
+
+.btn-warning:hover {
+    background-color: #244C53 !important;
+    border-color: #244C53;
+    color: #E6E6E7;
+}
+
+.btn-danger {
+    background-color: #244C53;
+    border-color: #244C53;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #007B80;
+    border-color: #007B80;
+}
+
+/* ==============================
+   Botones pequeños (acciones)
+   ============================== */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* ==============================
+   Badge de verificación
+   ============================== */
 .badge-success {
     display: inline-block;
-    padding: 15px 40px;
-    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    padding: 14px 35px;
+    background-color: #d4edda;
     color: #155724;
     border: 3px solid #28a745;
     border-radius: 50px;
     font-weight: 700;
-    font-size: 1.3em;
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+    font-size: 1.2em;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
 }
 
 .badge-error {
     display: inline-block;
-    padding: 15px 40px;
-    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    padding: 14px 35px;
+    background-color: #f8d7da;
     color: #721c24;
     border: 3px solid #dc3545;
     border-radius: 50px;
     font-weight: 700;
-    font-size: 1.3em;
-    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+    font-size: 1.2em;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.15);
 }
 
-/* Responsive Design */
+/* ==============================
+   Responsive - Tablets (992px)
+   ============================== */
 @media (max-width: 992px) {
-    .estado-title h2 {
-        font-size: 2em;
-    }
-
     .filtros-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .form-group:last-child {
-        grid-column: 1 / -1;
-    }
-
-    .btn-generar {
-        width: 100%;
-    }
-
-    .estado-table-container {
         padding: 20px;
     }
 
-    .estado-table thead th,
-    .account-row td {
-        padding: 12px 10px;
+    .filtros-grid .btn-warning,
+    .filtros-grid .btn-danger {
+        margin-left: 0;
+        margin-top: 5px;
+        width: calc(50% - 4px);
+    }
+
+    .estado-table {
+        min-width: 650px;
+    }
+
+    .estado-table thead th {
+        padding: 0.65rem;
         font-size: 0.95em;
     }
 
-    .group-header {
-        font-size: 1.1em;
+    .estado-table tbody td {
+        padding: 0.45rem 0.65rem;
+        font-size: 0.95em;
     }
 
-    .total-row {
+    .group-header td {
+        padding: 0.65rem !important;
+    }
+
+    .cuenta-item {
+        padding-left: 25px !important;
+    }
+
+    .subtotal-row td,
+    .total-row td {
+        padding: 0.6rem !important;
+    }
+
+    .badge-success,
+    .badge-error {
         font-size: 1.1em;
+        padding: 12px 30px;
     }
 }
 
+/* ==============================
+   Responsive - Móviles grandes (768px)
+   ============================== */
 @media (max-width: 768px) {
-    .container {
-        padding: 10px;
+    .display-5 {
+        font-size: 1.8em;
     }
 
-    .estado-container {
-        padding: 25px 20px;
-    }
-
-    .estado-title h2 {
-        font-size: 1.6em;
-    }
-
-    .estado-title p {
+    .lead {
         font-size: 1em;
     }
 
     .filtros-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-
-    .estado-table-container {
         padding: 15px;
     }
 
+    .filtros-grid .form-label {
+        font-size: 0.95em;
+    }
+
+    .filtros-grid .form-control {
+        padding: 10px 12px;
+        font-size: 0.95em;
+    }
+
+    .filtros-grid .btn-primary {
+        padding: 10px 15px;
+        font-size: 0.95em;
+    }
+
+    .filtros-grid .btn-warning,
+    .filtros-grid .btn-danger {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 8px;
+    }
+
     .estado-table {
+        min-width: 600px;
         font-size: 0.9em;
     }
 
     .estado-table thead th {
-        padding: 15px 8px;
-        font-size: 1em;
-    }
-
-    .group-header {
-        font-size: 1em;
-    }
-
-    .group-header td {
-        padding: 15px 10px;
-    }
-
-    .account-row td {
-        padding: 10px 8px;
+        padding: 0.6rem;
         font-size: 0.9em;
     }
 
+    .estado-table tbody td {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.9em;
+    }
+
+    .group-header td {
+        padding: 0.6rem !important;
+    }
+
     .cuenta-item {
-        padding-left: 15px !important;
+        padding-left: 20px !important;
     }
 
-    .total-row {
-        font-size: 1em;
-    }
-
+    .subtotal-row td,
     .total-row td {
-        padding: 15px 10px;
-    }
-
-    .balance-status {
-        padding: 20px 15px;
+        padding: 0.55rem !important;
     }
 
     .badge-success,
     .badge-error {
         font-size: 1em;
-        padding: 12px 25px;
-    }
-
-    .estado-table-container {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .estado-table {
-        min-width: 600px;
+        padding: 12px 28px;
     }
 }
 
+/* ==============================
+   Responsive - Móviles pequeños (480px)
+   ============================== */
 @media (max-width: 480px) {
-    .estado-title h2 {
-        font-size: 1.4em;
-        letter-spacing: 1px;
+    .display-5 {
+        font-size: 1.5em;
     }
 
-    .estado-title p {
+    .lead {
         font-size: 0.9em;
+    }
+
+    .filtros-grid {
+        padding: 12px;
+    }
+
+    .filtros-grid .form-label {
+        font-size: 0.9em;
+        margin-bottom: 5px;
+    }
+
+    .filtros-grid .form-control {
+        padding: 9px 10px;
+        font-size: 0.9em;
+    }
+
+    .filtros-grid .btn-primary {
+        padding: 9px 12px;
+        font-size: 0.9em;
+    }
+
+    .filtros-grid .btn-warning,
+    .filtros-grid .btn-danger {
+        padding: 8px 12px;
+        font-size: 0.85em;
     }
 
     .estado-table {
@@ -370,59 +435,111 @@
     }
 
     .estado-table thead th {
-        padding: 12px 6px;
-        font-size: 0.9em;
+        padding: 0.5rem;
+        font-size: 0.85em;
     }
 
-    .account-row td {
-        padding: 8px 6px;
+    .estado-table tbody td {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.85em;
+    }
+
+    .group-header td {
+        padding: 0.5rem !important;
     }
 
     .cuenta-item {
-        padding-left: 10px !important;
+        padding-left: 15px !important;
+    }
+
+    .subtotal-row td,
+    .total-row td {
+        padding: 0.45rem !important;
     }
 
     .badge-success,
     .badge-error {
         font-size: 0.9em;
-        padding: 10px 20px;
+        padding: 10px 25px;
+        border-width: 2px;
     }
 }
 
-/* Animaciones */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+/* ==============================
+   Responsive - Móviles muy pequeños (360px)
+   ============================== */
+@media (max-width: 360px) {
+    .display-5 {
+        font-size: 1.3em;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+
+    .lead {
+        font-size: 0.85em;
+    }
+
+    .filtros-grid {
+        padding: 10px;
+    }
+
+    .estado-table {
+        min-width: 500px;
+    }
+
+    .filtros-grid .form-control {
+        padding: 8px;
+        font-size: 0.85em;
+    }
+
+    .filtros-grid .btn-primary {
+        font-size: 0.85em;
+        padding: 8px 10px;
+    }
+
+    .filtros-grid .btn-warning,
+    .filtros-grid .btn-danger {
+        font-size: 0.8em;
+        padding: 7px 10px;
+    }
+
+    .badge-success,
+    .badge-error {
+        font-size: 0.85em;
+        padding: 8px 20px;
     }
 }
 
-.estado-table tbody tr {
-    animation: fadeIn 0.3s ease;
-}
-
-/* Estilos para impresión */
+/* ==============================
+   Estilos para impresión
+   ============================== */
 @media print {
-    .estado-container {
-        background: white !important;
-        color: black !important;
+    .filtros-grid {
+        display: none !important;
     }
 
-    .filtros-grid,
-    .btn-generar {
-        display: none;
+    .btn-warning,
+    .btn-danger {
+        display: none !important;
     }
 
     .estado-table-container {
-        padding: 0;
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+
+    .table-responsive {
+        overflow-x: visible;
+    }
+
+    .estado-table {
+        min-width: auto;
     }
 
     .account-row:hover {
         background-color: transparent !important;
-        transform: none !important;
+    }
+
+    .badge-success,
+    .badge-error {
+        border: 2px solid currentColor;
     }
 }
