@@ -20,7 +20,7 @@
         </div>
         <div class="position-sticky pt-3">
             <ul class="nav flex-column">
-                <li class="nav-item"><a class="nav-link active" href="#">Catálogo de cuentas</a></li>
+                <li class="nav-item"><a class="nav-link active" href="{% url 'contabilidad:catalogo_cuentas' %}">Catálogo de cuentas</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Transacciones</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Estados financieros</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Contabilidad de Costos</a></li>
@@ -38,12 +38,12 @@
                 <i class="fi fi-sr-menu-burger"></i>
             </button>
             <div class="text-center mx-auto">
-                <a class="navbar-brand navbar-brand-custom" href="#">
+                <a class="navbar-brand navbar-brand-custom" href="{% url 'contabilidad:panel_principal' %}">
                     ContaCloud <i class="fi fi-sr-stats"></i>
                 </a>
             </div>
             <div>
-                <a class="btn btn-logout" href="#">Cerrar sesión</a>
+                <a class="btn btn-logout" href="{% url 'usuarios:logout_view' %}">Cerrar sesión</a>
             </div>
         </nav>
 
@@ -73,3 +73,4 @@
     </script>
 </body>
 </html>
+

@@ -6,24 +6,24 @@
 {% block content %}
 <link rel="stylesheet" href="{% static '/css/index.css' %}">
 <div class="welcome-header">
-    <h2>Estados Financieros</h2> 
-  
+    <h2>Bienvenido {{ usuario.username }}</h2> <!--USUARIO SE REEMPLAZARA POR EL NOMBRE DEL USUARIO QUE ESTE UTILIZANDO EL SISTEMA-->
+    <p>¿Qué deseas hacer hoy?</p>
 </div>
 
 <div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center">
     <div class="col">
         <a href="#" class="action-card">
-            Balanace General
+            Nueva transacción
+        </a>
+    </div>
+    <div class="col">
+        <a href="{% url 'contabilidad:catalogo_cuentas' %}" class="action-card">
+            Ver catálogo
         </a>
     </div>
     <div class="col">
         <a href="#" class="action-card">
-            Estado de Resultados
-        </a>
-    </div>
-    <div class="col">
-        <a href="#" class="action-card">
-            Estado de Capital
+            Ver estados financieros
         </a>
     </div>
 </div>

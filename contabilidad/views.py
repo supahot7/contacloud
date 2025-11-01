@@ -1,48 +1,29 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Cuenta
+from usuarios.views import login_view
 
 # -------------------------
-# Login (simulado)
+# Panel principal (protegido)
 # -------------------------
-def login_view(request):
-    if request.method == 'POST':
-        # Aquí podrías agregar lógica real de autenticación
-        print("Formulario de login enviado!")
-        return render(request, 'login.html', {'message': 'Login exitoso (simulado)'})
-    
-    return render(request, 'login.html')
-
-
-# -------------------------
-# Panel principal
-# -------------------------
-
+@login_required(login_url='usuarios:login')
 def panel_principal(request):
-    return render(request, 'contabilidad/index.html')
-
-
-
-# -------------------------
-# Catálogo de cuentas
-# -------------------------
-def catalogo_cuentas(request):
-    # Se recomienda usar snake_case en el nombre del template
-    return render(request, 'contabilidad/catalogo_cuentas.html')
-
-# -------------------------
-# Nueva Transacción
-# -------------------------
-def nueva_transaccion(request):
-    # Puedes pasar datos al template si es necesario, por ejemplo para activar el item del menú
     context = {
-        'active_page': 'transacciones' # Esto ayuda a destacar "Transacciones" en el sidebar
+        'usuario': request.user
     }
-    return render(request, 'contabilidad/nueva_transaccion.html', context)
-
-
+    return render(request, 'contabilidad/index.html', context)
 
 # -------------------------
-# Estado Financiero
+# Catálogo de cuentas (protegido)
 # -------------------------
-def estado_financiero(request):
-    # Renderiza el template de estados financieros
-    return render(request, 'contabilidad/estado_financiero.html')
+@login_required(login_url='/login/')
+def catalogo_cuentas(request):
+    # Obtener todas las cuentas de la base de datos
+    cuentas = Cuenta.objects.all().order_by('codigo')
+    
+    # Pasar las cuentas al template
+    context = {
+        'cuentas': cuentas
+    }
+    return render(request, 'contabilidad/catalogo_cuentas.html', context)
+
