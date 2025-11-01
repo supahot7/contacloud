@@ -1,0 +1,182 @@
+/* Estilos para las tarjetas de resumen */
+.card {
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  background-color: #bfe5f0;
+  margin-bottom: 1rem;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.btn-success {
+  background-color: #007b80 !important;
+  border-color: #007b80;
+  color: #ffffff;
+}
+
+.btn-success:hover {
+  background-color: #244c53 !important;
+  border-color: #244c53;
+}
+
+.cost-form .form-label {
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 8px;
+}
+
+.cost-form .form-control,
+.cost-form .form-select {
+  border: 2px solid #cbe0cbff;
+  border-radius: 8px;
+  padding: 12px 15px;
+  transition: all 0.3s ease;
+}
+
+.cost-form .form-control:focus,
+.cost-form .form-select:focus {
+  border-color: #007b80;
+  box-shadow: 0 0 0 4px rgba(0, 123, 128, 0.1);
+}
+
+.cost-form {
+  background: #f7fafc;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  border: 1px solid #e2e8f0;
+}
+
+.cost-table thead th {
+  background-color: #2c3034;
+  color: #ffffff;
+  text-align: center;
+  font-weight: 600;
+  padding: 0.75rem;
+  text-transform: uppercase;
+  font-size: 0.95em;
+}
+
+.cost-table tbody td {
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.text-muted {
+  color: #a0aec0 !important;
+  font-style: italic;
+}
+
+/* Estilos para el modal personalizado */
+.custom-modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease;
+}
+
+.custom-modal-content {
+  background-color: #ffffff;
+  margin: 10% auto;
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideDown 0.3s ease;
+}
+
+.custom-modal-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
+}
+
+.custom-modal-content h3 {
+  color: #2d3748;
+  margin-bottom: 15px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.custom-modal-content p {
+  color: #4a5568;
+  margin-bottom: 25px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.custom-modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-btn-primary {
+  background-color: #007b80;
+  color: white;
+}
+
+.modal-btn-primary:hover {
+  background-color: #244c53;
+  transform: translateY(-2px);
+}
+
+.modal-btn-secondary {
+  background-color: #e2e8f0;
+  color: #2d3748;
+}
+
+.modal-btn-secondary:hover {
+  background-color: #cbd5e0;
+}
+
+.modal-btn-danger {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.modal-btn-danger:hover {
+  background-color: #c53030;
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

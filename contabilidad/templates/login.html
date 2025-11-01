@@ -1,34 +1,40 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Contacloud - Iniciar Sesión</title>
-    <link rel="stylesheet" href="{% static '/css/login.css' %}">
-    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.2.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
-</head>
-<body>
+    <link rel="stylesheet" href="{% static '/css/login.css' %}" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/2.2.0/uicons-solid-rounded/css/uicons-solid-rounded.css"
+    />
+  </head>
+  <body>
     <div class="login-container">
-        <div class="login-header">
-            <h1>Contacloud <span class="logo" ></span><i class="fi fi-sr-stats"></i></h1>
-       
-        </div>
-        <div class="login-form-box">
-            <h2>Iniciar sesión</h2>
-            <form method="post" action=""> {# action="" para enviar al mismo URL por ahora #}
-                {% csrf_token %} {# ¡Importante para seguridad en Django! #}
-                <div class="form-group">
-                    <label for="id_username color">Usuario:</label>
-                    <input type="text" id="id_username" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="id_password">Contraseña:</label>
-                    <input type="password" id="id_password" name="password" required>
-                </div>
-                <button type="submit" class="btn-ingresar">Ingresar</button>
-            </form>
-        </div>
+      <div class="login-header">
+        <h1>
+          Contacloud <span class="logo"></span><i class="fi fi-sr-stats"></i>
+        </h1>
+      </div>
+      <div class="login-form-box">
+        <h2>Iniciar sesión</h2>
+        <form method="post" action="">
+          {# action="" para enviar al mismo URL por ahora #} {% csrf_token %} {#
+          ¡Importante para seguridad en Django! #}
+          <div class="form-group">
+            <label for="id_username color">Usuario:</label>
+            <input type="text" id="id_username" name="username" required />
+          </div>
+          <div class="form-group">
+            <label for="id_password">Contraseña:</label>
+            <input type="password" id="id_password" name="password" required />
+          </div>
+          <button type="submit" class="btn-ingresar">Ingresar</button>
+        </form>
+      </div>
     </div>
-</body>
+  </body>
 </html>

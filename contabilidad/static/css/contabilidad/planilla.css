@@ -1,0 +1,296 @@
+/* ==============================
+   Contenedor de la tabla
+   ============================== */
+.balance-table-container {
+    max-width: 100%;
+    margin: 0 auto 2rem auto;
+    border: 1px solid #CED4DA;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    background-color: #fff;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+/* ==============================
+   Encabezado de la tabla
+   ============================== */
+.balance-table thead th {
+    background-color: #007B80;
+    color: #ffffff;
+    border-color: #357ABD;
+    text-align: center;
+    font-weight: 500;
+    padding: 0.75rem;
+}
+
+/* ==============================
+   Celdas de la tabla
+   ============================== */
+.balance-table tbody td {
+    padding: 0.5rem 0.75rem;
+    border-color: #dee2e6;
+    vertical-align: middle;
+}
+
+/* ==============================
+   Fila total
+   ============================== */
+.total-row {
+    border-top: 2px solid #000;
+    font-weight: bold;
+    background-color: #e6f7ff !important;
+}
+
+.total-value {
+    font-weight: bold !important;
+    font-size: 1.1rem;
+}
+
+/* ==============================
+   Header personalizado
+   ============================== */
+.card-header-custom {
+    background-color: #007B80;
+    color: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header-custom h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+/* ==============================
+   Formulario de planilla
+   ============================== */
+.formulario-planilla {
+    padding: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #007B80;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 128, 0.25);
+}
+
+.required {
+    color: #dc3545;
+}
+
+/* ==============================
+   Radio buttons
+   ============================== */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-radius: 0.25rem;
+}
+
+.radio-label:hover {
+    background-color: #f8f9fa;
+}
+
+.radio-label input[type="radio"] {
+    margin-right: 0.5rem;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* ==============================
+   Input Group
+   ============================== */
+.input-group {
+    display: flex;
+}
+
+.input-group-text {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-right: none;
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    border-radius: 0.25rem 0 0 0.25rem;
+}
+
+.input-group .form-control {
+    border-radius: 0 0.25rem 0.25rem 0;
+}
+
+/* ==============================
+   Panel de resultados
+   ============================== */
+.resultado-planilla {
+    padding: 1.5rem;
+}
+
+.resultado-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.2s ease;
+}
+
+.resultado-item:hover {
+    background-color: #f8f9fa;
+}
+
+.resultado-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.resultado-value {
+    font-weight: 600;
+    color: #28a745;
+    font-size: 1.1rem;
+}
+
+.resultado-item.destacado {
+    background-color: #fff3cd;
+}
+
+.resultado-item.destacado .resultado-value {
+    color: #856404;
+}
+
+.resultado-item.total {
+    background-color: #007B80;
+    color: white;
+    font-weight: bold;
+    border: none;
+    margin-top: 0.5rem;
+}
+
+.resultado-item.total .resultado-label,
+.resultado-item.total .resultado-value {
+    color: white;
+    font-size: 1.2rem;
+}
+
+/* ==============================
+   Botones personalizados
+   ============================== */
+.btn-primary {
+    background-color: #007B80 !important;
+    border-color: #007B80 !important;
+    color: #fff !important;
+}
+
+.btn-primary:hover {
+    background-color: #C0D0EF !important;
+    border-color: #C0D0EF !important;
+    color: #000 !important;
+}
+
+.btn-warning {
+    background-color: #007B80 !important;
+    border-color: #007B80 !important;
+    color: #E6E6E7 !important;
+}
+
+.btn-warning:hover {
+    background-color: #244C53 !important;
+    border-color: #244C53 !important;
+    color: #E6E6E7 !important;
+}
+
+.btn-danger {
+    background-color: #244C53 !important;
+    border-color: #244C53 !important;
+    color: #fff !important;
+}
+
+.btn-danger:hover {
+    background-color: #007B80 !important;
+    border-color: #007B80 !important;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* ==============================
+   Alineación de texto
+   ============================== */
+.text-end {
+    text-align: right !important;
+}
+
+/* ==============================
+   Responsive
+   ============================== */
+@media (max-width: 992px) {
+    .card-header-custom {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .card-header-custom .btn {
+        width: 100%;
+    }
+
+    .resultado-value {
+        font-size: 1rem;
+    }
+
+    .resultado-item.total .resultado-label,
+    .resultado-item.total .resultado-value {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .formulario-planilla,
+    .resultado-planilla {
+        padding: 1rem;
+    }
+
+    .resultado-item {
+        padding: 0.5rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .resultado-value {
+        align-self: flex-end;
+    }
+}

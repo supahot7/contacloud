@@ -1,0 +1,513 @@
+/* ==============================
+   Contenedor Principal
+   ============================== */
+.container {
+    max-width: 1400px;
+}
+
+/* ==============================
+   Header
+   ============================== */
+.display-5 {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.lead {
+    color: #666;
+    font-weight: 500;
+}
+
+/* ==============================
+   Filtros Grid
+   ============================== */
+.filtros-grid {
+    background-color: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #CED4DA;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+.filtros-grid .form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.filtros-grid .form-control {
+    border: 1px solid #CED4DA;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+    padding: 10px 14px;
+    transition: all 0.3s ease;
+}
+
+.filtros-grid .form-control:focus {
+    border-color: #007B80;
+    background: #fff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 128, 0.25);
+    outline: none;
+}
+
+/* ==============================
+   Contenedor de la tabla
+   ============================== */
+.balance-table-container {
+    max-width: 100%;
+    margin: 20px auto 0;
+    border: 1px solid #CED4DA;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    background-color: #fff;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ==============================
+   Tabla Balance
+   ============================== */
+.balance-table {
+    margin-bottom: 0 !important;
+    min-width: 600px;
+    width: 100%;
+}
+
+/* ==============================
+   Encabezado de la tabla
+   ============================== */
+.balance-table thead th {
+    background-color: #212529; /* Color de fondo personalizado */
+    color: #ffffff; /* Color del texto */
+    border-color: #357ABD; /* Borde del encabezado */
+    text-align: center; /* Centrar texto */
+    font-weight: 500;
+    padding: 0.75rem;
+}
+
+.balance-table thead th:first-child {
+    text-align: left;
+}
+
+/* ==============================
+   Celdas de la tabla
+   ============================== */
+.balance-table tbody td {
+    padding: 0.5rem 0.75rem;
+    border-color: #dee2e6;
+    vertical-align: middle;
+}
+
+/* ==============================
+   Fila de grupo (ACTIVOS, PASIVOS, CAPITAL)
+   ============================== */
+.group-header {
+    font-weight: bold;
+    color: #333;
+    padding-top: 1rem;
+    text-align: left;
+}
+
+.group-header td {
+    padding: 0.75rem !important;
+}
+
+/* Colores de grupo usando clases de Bootstrap */
+.table-primary.group-header {
+    background-color: #dbeafe;
+}
+.table-danger.group-header {
+    background-color: #fee2e2;
+}
+.table-success.group-header {
+    background-color: #d1fae5;
+}
+
+/* ==============================
+   Filas de cuentas
+   ============================== */
+.account-row td {
+    padding: 0.5rem 0.75rem !important;
+}
+
+.cuenta-item {
+    font-weight: 600;
+    color: #333;
+    padding-left: 30px !important;
+}
+
+/* ==============================
+   Hover en filas de cuentas
+   ============================== */
+.account-row:hover {
+    background-color: #f0f8ff !important; /* Azul muy claro */
+    transition: background-color 0.2s ease;
+}
+
+/* ==============================
+   Fila total
+   ============================== */
+.total-row {
+    border-top: 2px solid #000;
+    font-weight: bold;
+    background-color: #e6f7ff;
+}
+
+.total-row td {
+    padding: 0.75rem !important;
+    font-weight: bold;
+}
+
+/* Alineación y negrita para los totales */
+.total-value {
+    font-weight: bold !important;
+}
+
+/* ==============================
+   Alineación del texto
+   ============================== */
+.text-end {
+    text-align: right !important;
+}
+
+/* ==============================
+   Botones personalizados
+   ============================== */
+.btn-primary {
+    background-color: #007B80; /* Color de fondo */
+    border-color: #007B80; /* Borde */
+}
+
+.btn-primary:hover {
+    background-color: #C0D0EF; /* Fondo al pasar el mouse */
+    border-color: #C0D0EF;
+    color: #000;
+}
+
+.btn-warning {
+    background-color: #007B80 !important;
+    border-color: #007B80;
+    color: #E6E6E7; /* Texto claro */
+}
+
+.btn-warning:hover {
+    background-color: #244C53 !important;
+    border-color: #244C53;
+    color: #E6E6E7;
+}
+
+.btn-danger {
+    background-color: #244C53;
+    border-color: #244C53;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #007B80;
+    border-color: #007B80;
+}
+
+/* ==============================
+   Botones pequeños (acciones)
+   ============================== */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* ==============================
+   Badge de verificación
+   ============================== */
+.badge-success {
+    display: inline-block;
+    padding: 14px 35px;
+    background-color: #d4edda;
+    color: #155724;
+    border: 3px solid #28a745;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.2em;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
+}
+
+.badge-error {
+    display: inline-block;
+    padding: 14px 35px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 3px solid #dc3545;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.2em;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.15);
+}
+
+/* ==============================
+   Responsive - Tablets (992px)
+   ============================== */
+@media (max-width: 992px) {
+    .filtros-grid {
+        padding: 20px;
+    }
+
+    .filtros-grid .btn-warning,
+    .filtros-grid .btn-danger {
+        margin-left: 0;
+        margin-top: 5px;
+        width: calc(50% - 4px);
+    }
+
+    .balance-table {
+        min-width: 650px;
+    }
+
+    .balance-table thead th {
+        padding: 0.65rem;
+        font-size: 0.95em;
+    }
+
+    .balance-table tbody td {
+        padding: 0.45rem 0.65rem;
+        font-size: 0.95em;
+    }
+
+    .group-header td {
+        padding: 0.65rem !important;
+    }
+
+    .cuenta-item {
+        padding-left: 25px !important;
+    }
+
+    .badge-success,
+    .badge-error {
+        font-size: 1.1em;
+        padding: 12px 30px;
+    }
+}
+
+/* ==============================
+   Responsive - Móviles grandes (768px)
+   ============================== */
+@media (max-width: 768px) {
+    .display-5 {
+        font-size: 1.8em;
+    }
+
+    .lead {
+        font-size: 1em;
+    }
+
+    .filtros-grid {
+        padding: 15px;
+    }
+
+    .filtros-grid .form-label {
+        font-size: 0.95em;
+    }
+
+    .filtros-grid .form-control {
+        padding: 10px 12px;
+        font-size: 0.95em;
+    }
+
+    .filtros-grid .btn-primary {
+        padding: 10px 15px;
+        font-size: 0.95em;
+    }
+
+    .filtros-grid .btn-warning,
+    .filtros-grid .btn-danger {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 8px;
+    }
+
+    .balance-table {
+        min-width: 600px;
+        font-size: 0.9em;
+    }
+
+    .balance-table thead th {
+        padding: 0.6rem;
+        font-size: 0.9em;
+    }
+
+    .balance-table tbody td {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.9em;
+    }
+
+    .group-header td {
+        padding: 0.6rem !important;
+    }
+
+    .cuenta-item {
+        padding-left: 20px !important;
+    }
+
+    .total-row td {
+        padding: 0.6rem !important;
+    }
+
+    .badge-success,
+    .badge-error {
+        font-size: 1em;
+        padding: 12px 28px;
+    }
+}
+
+/* ==============================
+   Responsive - Móviles pequeños (480px)
+   ============================== */
+@media (max-width: 480px) {
+    .display-5 {
+        font-size: 1.5em;
+    }
+
+    .lead {
+        font-size: 0.9em;
+    }
+
+    .filtros-grid {
+        padding: 12px;
+    }
+
+    .filtros-grid .form-label {
+        font-size: 0.9em;
+        margin-bottom: 5px;
+    }
+
+    .filtros-grid .form-control {
+        padding: 9px 10px;
+        font-size: 0.9em;
+    }
+
+    .filtros-grid .btn-primary {
+        padding: 9px 12px;
+        font-size: 0.9em;
+    }
+
+    .filtros-grid .btn-warning,
+    .filtros-grid .btn-danger {
+        padding: 8px 12px;
+        font-size: 0.85em;
+    }
+
+    .balance-table {
+        min-width: 550px;
+        font-size: 0.85em;
+    }
+
+    .balance-table thead th {
+        padding: 0.5rem;
+        font-size: 0.85em;
+    }
+
+    .balance-table tbody td {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.85em;
+    }
+
+    .group-header td {
+        padding: 0.5rem !important;
+    }
+
+    .cuenta-item {
+        padding-left: 15px !important;
+    }
+
+    .total-row td {
+        padding: 0.5rem !important;
+    }
+
+    .badge-success,
+    .badge-error {
+        font-size: 0.9em;
+        padding: 10px 25px;
+        border-width: 2px;
+    }
+}
+
+/* ==============================
+   Responsive - Móviles muy pequeños (360px)
+   ============================== */
+@media (max-width: 360px) {
+    .display-5 {
+        font-size: 1.3em;
+    }
+
+    .lead {
+        font-size: 0.85em;
+    }
+
+    .filtros-grid {
+        padding: 10px;
+    }
+
+    .balance-table {
+        min-width: 500px;
+    }
+
+    .filtros-grid .form-control {
+        padding: 8px;
+        font-size: 0.85em;
+    }
+
+    .filtros-grid .btn-primary {
+        font-size: 0.85em;
+        padding: 8px 10px;
+    }
+
+    .filtros-grid .btn-warning,
+    .filtros-grid .btn-danger {
+        font-size: 0.8em;
+        padding: 7px 10px;
+    }
+
+    .badge-success,
+    .badge-error {
+        font-size: 0.85em;
+        padding: 8px 20px;
+    }
+}
+
+/* ==============================
+   Estilos para impresión
+   ============================== */
+@media print {
+    .filtros-grid {
+        display: none !important;
+    }
+
+    .btn-warning,
+    .btn-danger {
+        display: none !important;
+    }
+
+    .balance-table-container {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+
+    .table-responsive {
+        overflow-x: visible;
+    }
+
+    .balance-table {
+        min-width: auto;
+    }
+
+    .account-row:hover {
+        background-color: transparent !important;
+    }
+
+    .badge-success,
+    .badge-error {
+        border: 2px solid currentColor;
+    }
+}

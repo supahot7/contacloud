@@ -1,0 +1,260 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Cálculo de
+Planilla{% endblock %} {% block content %}
+
+<link rel="stylesheet" href="{% static 'css/contabilidad/planilla.css' %}" />
+
+<div class="container py-4">
+  <!-- Header -->
+  <div class="mb-4 text-center">
+    <h1 class="display-5">Cálculo de Planilla</h1>
+    <p class="lead">Sistema de cálculo de salarios y deducciones</p>
+  </div>
+
+  <!-- Contenedor principal -->
+  <div class="row">
+    <!-- Formulario de entrada -->
+    <div class="col-lg-5">
+      <div class="balance-table-container">
+        <div class="card-header-custom">
+          <h3>Datos del Empleado</h3>
+        </div>
+
+        <div class="formulario-planilla">
+          <form id="formPlanilla">
+            <!-- Nombre del Empleado -->
+            <div class="form-group">
+              <label for="nombre_empleado"
+                >Nombre del Empleado <span class="required">*</span></label
+              >
+              <select id="nombre_empleado" class="form-control" required>
+                <option value="">-- Seleccione un empleado --</option>
+                <option value="Juan Pérez">Juan Pérez</option>
+                <option value="María García">María García</option>
+                <option value="Carlos López">Carlos López</option>
+                <option value="Ana Martínez">Ana Martínez</option>
+              </select>
+            </div>
+
+            <!-- Puesto -->
+            <div class="form-group">
+              <label for="puesto">Puesto <span class="required">*</span></label>
+              <select id="puesto" class="form-control" required>
+                <option value="">-- Seleccione un puesto --</option>
+                <option value="Contador">Contador</option>
+                <option value="Operario">Operario</option>
+                <option value="Supervisor">Supervisor</option>
+                <option value="Gerente">Gerente</option>
+                <option value="Asistente">Asistente</option>
+              </select>
+            </div>
+
+            <!-- Salario Nominal Semanal -->
+            <div class="form-group">
+              <label for="salario_nominal"
+                >Salario Nominal Semanal <span class="required">*</span></label
+              >
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="number"
+                  id="salario_nominal"
+                  class="form-control"
+                  step="0.01"
+                  placeholder="20.00"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Días trabajados -->
+            <div class="form-group">
+              <label for="dias_trabajados"
+                >Días Trabajados <span class="required">*</span></label
+              >
+              <input
+                type="number"
+                id="dias_trabajados"
+                class="form-control"
+                min="1"
+                max="31"
+                placeholder="30"
+                required
+              />
+            </div>
+
+            <!-- Años trabajados -->
+            <div class="form-group">
+              <label>Años Trabajados <span class="required">*</span></label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    name="anos_trabajados"
+                    value="1-3"
+                    checked
+                  />
+                  1-3 años
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="anos_trabajados" value="3-10" />
+                  3-10 años
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="anos_trabajados" value="10+" />
+                  +10 años
+                </label>
+              </div>
+            </div>
+
+            <!-- Botón de cálculo -->
+            <div class="form-group">
+              <button
+                type="button"
+                class="btn btn-primary w-100 btn-lg"
+                id="btnCalcular"
+              >
+                Calcular
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de resultados -->
+    <div class="col-lg-7">
+      <div class="balance-table-container">
+        <div class="card-header-custom">
+          <h3>Resultado Salarial</h3>
+        </div>
+
+        <div class="resultado-planilla">
+          <div class="resultado-item">
+            <span class="resultado-label">Sueldo Nominal</span>
+            <span class="resultado-value" id="res_sueldo_nominal">$0.00</span>
+          </div>
+
+          <div class="resultado-item">
+            <span class="resultado-label">Costo Semana Salarial</span>
+            <span class="resultado-value" id="res_costo_semana">$0.00</span>
+          </div>
+
+          <div class="resultado-item">
+            <span class="resultado-label">Séptimo</span>
+            <span class="resultado-value" id="res_septimo">$0.00</span>
+          </div>
+
+          <div class="resultado-item">
+            <span class="resultado-label">Vacaciones</span>
+            <span class="resultado-value" id="res_vacaciones">$0.00</span>
+          </div>
+
+          <div class="resultado-item">
+            <span class="resultado-label">Aguinaldo</span>
+            <span class="resultado-value" id="res_aguinaldo">$0.00</span>
+          </div>
+
+          <div class="resultado-item">
+            <span class="resultado-label">Cálculo Salarial Cancelado</span>
+            <span class="resultado-value" id="res_salario_cancelado"
+              >$0.00</span
+            >
+          </div>
+
+          <div class="resultado-item destacado">
+            <span class="resultado-label">ISSS</span>
+            <span class="resultado-value" id="res_isss">$0.00</span>
+          </div>
+
+          <div class="resultado-item destacado">
+            <span class="resultado-label">AFP</span>
+            <span class="resultado-value" id="res_afp">$0.00</span>
+          </div>
+
+          <div class="resultado-item destacado">
+            <span class="resultado-label">INCAF</span>
+            <span class="resultado-value" id="res_incaf">$0.00</span>
+          </div>
+
+          <div class="resultado-item total">
+            <span class="resultado-label">SALARIO TOTAL SEMANAL</span>
+            <span class="resultado-value" id="res_total_semanal">$0.00</span>
+          </div>
+
+          <div class="resultado-item total">
+            <span class="resultado-label">SALARIO TOTAL MENSUAL</span>
+            <span class="resultado-value" id="res_total_mensual">$0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones de acción -->
+  <div class="text-center mt-4">
+    <button
+      type="button"
+      class="btn btn-primary btn-lg"
+      id="btnAgregarPlanilla"
+    >
+      + Agregar a Planilla
+    </button>
+    <button
+      type="button"
+      class="btn btn-warning btn-lg ms-2"
+      id="btnVerPlanilla"
+    >
+      📋 Ver Planilla Completa
+    </button>
+  </div>
+
+  <!-- Tabla de Planilla Completa -->
+  <div
+    class="balance-table-container mt-4"
+    id="tablaPlanillaCompleta"
+    style="display: none"
+  >
+    <div class="table-responsive">
+      <table class="table table-hover align-middle balance-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Puesto</th>
+            <th class="text-end">Salario Nominal</th>
+            <th class="text-end">Total Semanal</th>
+            <th class="text-end">Total Mensual</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyPlanilla">
+          <tr>
+            <td
+              colspan="6"
+              class="text-center text-muted"
+              style="padding: 2rem"
+            >
+              No hay empleados en la planilla. Calcula y agrega empleados para
+              comenzar.
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="3"><strong>TOTALES</strong></td>
+            <td class="text-end total-value" id="total_semanal_planilla">
+              $0.00
+            </td>
+            <td class="text-end total-value" id="total_mensual_planilla">
+              $0.00
+            </td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/planilla.js' %}"></script>
+
+{% endblock %}

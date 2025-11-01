@@ -38,6 +38,50 @@ def catalogo_cuentas(request):
         'cuentas': cuentas
     }
     return render(request, 'contabilidad/catalogo_cuentas.html', context)
+    # Se recomienda usar snake_case en el nombre del template
+    return render(request, 'contabilidad/catalogoCuentas.html')
+
+# -------------------------
+# Estados Financieros
+# -------------------------
+
+def estados_financieros(request):
+    return render(request, 'contabilidad/estadosFinancieros.html')
+
+# -------------------------
+# Balance General
+# -------------------------
+
+def balance_general(request):
+    return render(request, 'contabilidad/balanceGeneral.html')
+
+# -------------------------
+# Estado de Resultados
+# -------------------------
+
+def estado_resultados(request):
+    return render(request, 'contabilidad/estadoResultados.html')
+
+# -------------------------
+# Estado de Capital
+# -------------------------
+
+def estado_capital(request):
+    return render(request, 'contabilidad/estadoCapital.html')
+
+# -------------------------
+# Mano de Obra
+# -------------------------
+
+def mano_obra(request):
+    return render(request, 'contabilidad/manoObra.html')
+
+# -------------------------
+# Inventario de Licencias
+# -------------------------
+
+def inventario_licencias(request):
+    return render(request, 'contabilidad/inventarioLicencias.html')
 
 # -------------------------
 # DETALLE DE CUENTA
@@ -212,3 +256,8 @@ def detalle_asiento(request, asiento_id):
         'partidas': partidas,
     }
     return render(request, 'contabilidad/detalle_asiento.html', context)
+# Inventario de Licencias
+# -------------------------
+
+def planilla(request):
+    return render(request, 'contabilidad/planilla.html')

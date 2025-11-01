@@ -1,11 +1,76 @@
 /* ==============================
+   Contenedor de la tabla
+   ============================== */
+.balance-table-container {
+    max-width: 900px;
+    margin: 0 auto;
+    border: 1px solid #CED4DA;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    background-color: #fff;
+}
+
+/* ==============================
    Encabezado de la tabla
    ============================== */
-.table thead th {
-    background-color:#007B80; /* Color de fondo personalizado */
+.balance-table thead th {
+    background-color: #007B80; /* Color de fondo personalizado */
     color: #ffffff; /* Color del texto */
     border-color: #357ABD; /* Borde del encabezado */
     text-align: center; /* Centrar texto */
+    font-weight: 500;
+    padding: 0.75rem;
+}
+
+/* ==============================
+   Celdas de la tabla
+   ============================== */
+.balance-table tbody td {
+    padding: 0.5rem 0.75rem;
+    border-color: #dee2e6;
+    vertical-align: middle;
+}
+
+/* ==============================
+   Fila de grupo (ACTIVOS, PASIVOS, CAPITAL)
+   ============================== */
+.group-header {
+    font-weight: bold;
+    color: #333;
+    padding-top: 1rem;
+    text-align: left;
+}
+
+/* Colores de grupo usando clases de Bootstrap */
+.table-primary.group-header {
+    background-color: #dbeafe;
+}
+.table-danger.group-header {
+    background-color: #fee2e2;
+}
+.table-success.group-header {
+    background-color: #d1fae5;
+}
+
+/* ==============================
+   Fila total
+   ============================== */
+.total-row {
+    border-top: 2px solid #000;
+    font-weight: bold;
+    background-color: #e6f7ff;
+}
+
+/* Alineación y negrita para los totales */
+.total-value {
+    font-weight: bold !important;
+}
+
+/* ==============================
+   Hover en filas de cuentas
+   ============================== */
+.account-row:hover {
+    background-color: #f0f8ff !important; /* Azul muy claro */
+    transition: background-color 0.2s ease;
 }
 
 /* ==============================
@@ -22,11 +87,10 @@
     color: #000;
 }
 
-
 .btn-warning {
     background-color: #007B80 !important;
     border-color: #007B80;
-    color: #E6E6E7; /* Texto oscuro */
+    color: #E6E6E7; /* Texto claro */
 }
 
 .btn-warning:hover {
@@ -38,6 +102,7 @@
 .btn-danger {
     background-color: #244C53;
     border-color: #244C53;
+    color: #fff;
 }
 
 .btn-danger:hover {
@@ -54,8 +119,8 @@
 }
 
 /* ==============================
-   Opcional: cambiar color de la fila al pasar mouse
+   Alineación del texto
    ============================== */
-.table-hover tbody tr:hover {
-    background-color: #f0f8ff; /* Azul muy claro */
+.text-end {
+    text-align: right !important;
 }

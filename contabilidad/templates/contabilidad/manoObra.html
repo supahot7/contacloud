@@ -1,0 +1,321 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Contabilidad de
+Costos{% endblock %} {% block content %}
+
+<link rel="stylesheet" href="{% static 'css/contabilidad/manoObra.css' %}" />
+<div class="container py-4">
+  <!-- Header -->
+  <div class="header-section mb-4 text-center">
+    <h1 class="display-5">Contabilidad de Costos</h1>
+    <p class="lead">
+      Administración de costos, mano de obra y cálculo de Tasa CIF
+    </p>
+  </div>
+
+  <!-- Tabs de Navegación -->
+  <ul class="nav nav-tabs mb-4" id="costosTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link active"
+        id="mano-obra-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#mano-obra"
+        type="button"
+        style="color: black"
+      >
+        Mano de Obra
+      </button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="cif-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#cif"
+        type="button"
+        style="color: black"
+      >
+        Costos Indirectos
+      </button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="resumen-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#resumen"
+        type="button"
+        style="color: black"
+      >
+        Cálculo Tasa CIF
+      </button>
+    </li>
+  </ul>
+
+  <!-- Contenido de Tabs -->
+  <div class="tab-content" id="costosTabsContent">
+    <!-- TAB: MANO DE OBRA -->
+    <div class="tab-pane fade show active" id="mano-obra" role="tabpanel">
+      <div class="cost-card">
+        <div class="card-header-custom">
+          <h3>Registro de Mano de Obra</h3>
+        </div>
+
+        <!-- Formulario -->
+        <form id="formManoObra" class="cost-form">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Nombre del Trabajador</label>
+              <input
+                type="text"
+                class="form-control"
+                id="nombre_trabajador"
+                placeholder="Ingrese nombre completo"
+                required
+              />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Cargo</label>
+              <input
+                type="text"
+                class="form-control"
+                id="cargo"
+                placeholder="Ej: Operario, Supervisor"
+                required
+              />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Costo Mensual</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="costo_mensual"
+                  step="0.01"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Fecha</label>
+              <input type="date" class="form-control" id="fecha_mo" required />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Observaciones</label>
+              <input
+                type="text"
+                class="form-control"
+                id="observaciones_mo"
+                placeholder="Tiempo completo/parcial"
+              />
+            </div>
+
+            <div class="col-12">
+              <button type="submit" class="btn btn-success btn-lg w-100">
+                + Agregar Registro
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Tabla Mano de Obra -->
+        <div class="table-responsive mt-4">
+          <table
+            class="table table-hover align-middle cost-table balance-table"
+          >
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Cargo</th>
+                <th>Costo Mensual</th>
+                <th>Fecha</th>
+                <th>Observaciones</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaManoObra">
+              <tr>
+                <td colspan="6" class="text-center text-muted">
+                  No hay registros aún
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="2"><strong>Total MOD</strong></td>
+                <td class="total-value" id="totalMOD">$0.00</td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: COSTOS INDIRECTOS -->
+    <div class="tab-pane fade" id="cif" role="tabpanel">
+      <div class="cost-card">
+        <div class="card-header-custom">
+          <h3>Costos Indirectos de Fabricación (CIF)</h3>
+        </div>
+
+        <!-- Formulario CIF -->
+        <form id="formCIF" class="cost-form">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Concepto</label>
+              <input
+                type="text"
+                class="form-control"
+                id="concepto"
+                placeholder="Ej: Energía eléctrica"
+                required
+              />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Categoría</label>
+              <select id="categoria" class="form-control" required>
+                <option value="">Seleccione...</option>
+                <option>Servicios</option>
+                <option>Mantenimiento</option>
+                <option>Depreciación</option>
+                <option>Seguros</option>
+                <option>Otros</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Monto</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="monto"
+                  step="0.01"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Fecha</label>
+              <input type="date" class="form-control" id="fecha_cif" required />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Descripción</label>
+              <input
+                type="text"
+                class="form-control"
+                id="descripcion"
+                placeholder="Detalles adicionales"
+              />
+            </div>
+
+            <div class="col-12">
+              <button type="submit" class="btn btn-success btn-lg w-100">
+                + Agregar CIF
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Tabla CIF -->
+        <div class="table-responsive mt-4">
+          <table
+            class="table table-hover align-middle cost-table balance-table"
+          >
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Categoría</th>
+                <th>Monto</th>
+                <th>Fecha</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaCIF">
+              <tr>
+                <td colspan="6" class="text-center text-muted">
+                  No hay registros aún
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="2"><strong>Total CIF</strong></td>
+                <td class="total-value" id="totalCIF">$0.00</td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: RESUMEN -->
+    <div class="tab-pane fade" id="resumen" role="tabpanel">
+      <div class="container text-center">
+        <h1 class="mb-4">Cálculo de Tasa CIF</h1>
+
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="card card-blue">
+              <div class="card-label">Total CIF</div>
+              <div class="card-value" id="resumenCIF">$0.00</div>
+              <div class="card-description">
+                Costos Indirectos de Fabricación
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card card-green">
+              <div class="card-label">Total MOD</div>
+              <div class="card-value" id="resumenMOD">$0.00</div>
+              <div class="card-description">Mano de Obra Directa</div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card card-purple">
+              <div class="card-label">Tasa CIF</div>
+              <div class="card-value" id="tasaCIF">0.00%</div>
+              <div class="card-description">(Total CIF / Total MOD) × 100</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <button class="btn btn-success btn-lg w-100" onclick="exportarPDF()">
+            📄 Exportar PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal personalizado para notificaciones -->
+<div id="customModal" class="custom-modal">
+  <div class="custom-modal-content">
+    <div class="custom-modal-icon" id="modalIcon"></div>
+    <h3 id="modalTitle"></h3>
+    <p id="modalMessage"></p>
+    <div class="custom-modal-buttons" id="modalButtons"></div>
+  </div>
+</div>
+
+<script src="{% static 'js/manoObra.js' %}"></script>
+{% endblock %}
