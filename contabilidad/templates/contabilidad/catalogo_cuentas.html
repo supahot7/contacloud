@@ -555,3 +555,32 @@ Cuentas{% endblock %} {% block content %}
 </script>
 
 {% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const buscarInput = document.getElementById("buscar");
+    const filtroSelect = document.getElementById("filtro-tipo");
+    const filas = document.querySelectorAll("#cuerpo-tabla tr");
+
+    function filtrar() {
+        const texto = buscarInput.value.toLowerCase();
+        const tipoSeleccionado = filtroSelect.value;
+
+        filas.forEach(fila => {
+            const codigo = fila.cells[0].textContent.toLowerCase();
+            const nombre = fila.cells[1].textContent.toLowerCase();
+            const tipo = fila.getAttribute("data-tipo");
+
+            const coincideTexto = codigo.includes(texto) || nombre.includes(texto);
+            const coincideTipo = tipoSeleccionado === "todos" || tipo === tipoSeleccionado;
+
+            fila.style.display = (coincideTexto && coincideTipo) ? "" : "none";
+        });
+    }
+
+    buscarInput.addEventListener("input", filtrar);
+    filtroSelect.addEventListener("change", filtrar);
+});
+</script>
+{% endblock %}

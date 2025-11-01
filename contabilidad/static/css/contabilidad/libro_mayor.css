@@ -1,0 +1,74 @@
+.table-container {
+    
+    overflow-y: auto;
+   
+    border-radius: 4px;
+}
+
+/* Encabezado fijo */
+.sticky-header th {
+    position: sticky;
+    top: 0;
+    background-color: #007B80 !important; /* gris suave */
+    z-index: 2;
+    border-bottom: 2px solid #b3b3b3 !important;
+}
+
+/* Ajuste visual general */
+table.table {
+    margin-bottom: 0;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    border: 1px solid #b3b3b3 !important;
+    font-size: 14px;
+    vertical-align: middle;
+    padding: 6px 8px;
+}
+
+/* Da más espacio al texto para evitar salto */
+.filtro-linea p {
+    white-space: nowrap;
+    flex-basis: 260px; /* 🔸 Más ancho para que no se parta */
+    flex-shrink: 0;
+    margin: 0;
+}
+
+/* Select ocupa el espacio restante */
+.filtro-linea select {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+
+
+.filtro-linea {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Espacio entre el texto y el select */
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+/* Texto fijo en una línea */
+.filtro-linea p {
+    white-space: nowrap;
+    flex-basis: 260px; /* ancho para que no se rompa la línea */
+    flex-shrink: 0;
+    margin: 0;
+}
+
+/* Select ocupa el resto del espacio */
+.filtro-linea select {
+    flex-grow: 1;
+    min-width: 0;
+    height: 38px; /* altura igual al texto */
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.cualquiera {
+    position: relative;
+    margin-top: 95px !important;
+}

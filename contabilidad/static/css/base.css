@@ -47,7 +47,8 @@ body {
         /* Navbar Superior (Contacloud, icono, Cerrar sesión) */
         .navbar-custom {
             display: flex;
-            
+            position: fixed;
+            top: auto;
             align-items: center;
             background-color: #E6E6E7; /* Fondo blanco */
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -56,6 +57,11 @@ body {
             border-bottom: 1px solid #ced4da;
             z-index: 1030;        /* Por encima de otros elementos */
             text-align: center;  
+            width: 100%;
+            }
+
+            .fixed-align{
+                margin-top:100px !important;
             }
 
 
