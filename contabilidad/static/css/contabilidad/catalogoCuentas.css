@@ -59,3 +59,144 @@
 .table-hover tbody tr:hover {
     background-color: #f0f8ff; /* Azul muy claro */
 }
+
+/* --- Estilos para la Tabla de Cuentas --- */
+
+    /* Color de fondo para las filas de Título de Categoría (Activo, Pasivo...) */
+    .fila-titulo-categoria {
+        background-color: #C0D0EF !important;
+        color: #0d47a1;
+        font-weight: bold;
+    }
+
+    /* Estilo para las cuentas principales (las que agrupan sub-cuentas) */
+    .cuenta-principal > td {
+        font-weight: bold;
+    }
+
+    /* Estilo para las sub-cuentas, con sangría para la jerarquía */
+    .subcuenta td:first-child {
+        padding-left: 2.5rem !important; /* Aumenta el espacio a la izquierda */
+    }
+
+    /* static/css/modal_styles.css */
+
+/* --- Contenedor Principal del Modal --- */
+.modal-content {
+    border-radius: 15px;      /* Bordes más redondeados */
+    border: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Sombra más suave */
+}
+
+/* --- Encabezado del Modal --- */
+.modal-header {
+    background-color: #0d6efd;  /* Fondo azul primario de Bootstrap */
+    color: white;             /* Texto blanco */
+    border-top-left-radius: 14px;  /* Redondeo para que coincida con el contenedor */
+    border-top-right-radius: 14px;
+    border-bottom: none;      /* Sin borde inferior */
+}
+
+/* --- Título del Modal --- */
+.modal-title {
+    font-weight: 500;
+    font-size: 1.2rem;
+}
+
+/* --- Botón de Cerrar (la 'X') --- */
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%); /* Hace el botón blanco */
+}
+
+/* --- Cuerpo del Modal --- */
+.modal-body {
+    padding: 2rem; /* Más espacio interior */
+}
+
+/* --- Pie de Página del Modal --- */
+.modal-footer {
+    background-color: #f8f9fa; /* Un fondo gris muy claro */
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    border-top: 1px solid #dee2e6; /* Línea divisoria sutil */
+    padding: 1rem;
+}
+
+/* --- Estilo de los botones en el pie de página --- */
+.modal-footer .btn {
+    padding: 0.5rem 1.5rem; /* Botones un poco más grandes */
+    border-radius: 20px;     /* Botones con bordes redondeados (píldora) */
+    font-weight: bold;
+}
+
+/* static/css/contabilidad/catalogoCuentas.css */
+
+/* --- Estilos para la Tabla y su Jerarquía --- */
+
+/* Nivel 0: Título de Categoría Principal (Activo, Pasivo, etc.) */
+.fila-titulo-categoria {
+    background-color: #0d47a1 !important; /* Azul oscuro */
+    color: white !important;
+    font-weight: bold;
+}
+
+/* Nivel 1: Título de Subtipo (Activo Corriente, Pasivo No Corriente, etc.) */
+.fila-subtitulo {
+    background-color: #e3f2fd !important; /* Azul claro */
+    color: #0d47a1 !important;        /* Texto azul oscuro */
+    font-weight: bold;
+}
+
+/* Nivel 2: Cuenta Principal o de Mayor */
+.cuenta-nivel-2 td:first-child {
+    padding-left: 2rem !important; /* Sangría de nivel 2 */
+    font-weight: 500;
+}
+
+/* Nivel 3: Sub-cuenta */
+.cuenta-nivel-3 td:first-child {
+    padding-left: 4rem !important; /* Sangría de nivel 3 */
+}
+
+/* Nivel 4: Sub-cuenta de detalle */
+.cuenta-nivel-4 td:first-child {
+    padding-left: 6rem !important; /* Sangría de nivel 4 */
+}
+
+
+/* --- Estilos para el Modal de Nueva Cuenta --- */
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background-color: #0d6efd;
+    color: white;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom: none;
+}
+
+.modal-title {
+    font-weight: 500;
+    font-size: 1.2rem;
+}
+
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-footer {
+    background-color: #f8f9fa;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+}

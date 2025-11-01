@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Libro Mayor{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/contabilidad/libro_mayor.css' %}">
+
+<!-- Header -->
+<div class="fixed-align text-center">
+    <h1 class="display-5">Libro Mayor</h1>
+</div>
+
+<div class="container relative">
+    <!-- Formulario para el filtro -->
+    <form method="GET" action="{% url 'contabilidad:libro_mayor' %}">
+        <div class="filtro-linea mb-3">
+            <p class="mb-0 fw-semibold">Seleccionar Cuenta Contable</p>
+            <select name="cuenta" id="filtro-tipo" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">-- Seleccione una cuenta --</option>
+                {% for cuenta_nombre in todas_las_cuentas %}
+                    <option value="{{ cuenta_nombre }}" {% if cuenta_nombre == selected_cuenta %}selected{% endif %}>
+                        {{ cuenta_nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+
+    <div class="table-container">
+        <table class="table table-bordered table-sm text-center align-middle">
+            <thead class="table-secondary sticky-header">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Número</th>
+                    <th>Descripción</th>
+                    <th>Debe</th>
+                    <th>Haber</th>
+                    <th>Saldo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cuenta in cuentas %}
+                <tr>
+                    <td>{{ cuenta.fecha|date:"Y-m-d" }}</td>
+                    <td>{{ cuenta.numero }}</td>
+                    <td>{{ cuenta.descripcion }}</td>
+                    <td>${{ cuenta.debe|floatformat:2 }}</td>
+                    <td>${{ cuenta.haber|floatformat:2 }}</td>
+                    <td>${{ cuenta.saldo|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">
+                        {% if selected_cuenta %}
+                            No hay registros disponibles para la cuenta seleccionada.
+                        {% else %}
+                            Por favor, seleccione una cuenta para ver los registros.
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                
+                {% if cuentas %}
+                <tr>
+                    <td colspan="3" class="fw-bold text-end">Totales</td>
+                    <td class="fw-bold">${{ totales.total_debe|floatformat:2 }}</td>
+                    <td class="fw-bold">${{ totales.total_haber|floatformat:2 }}</td>
+                    <td class="fw-bold">${{ totales.total_saldo|floatformat:2 }}</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- El botón solo aparece si hay una cuenta seleccionada -->
+    <div class="text-end mt-3 ">
+        {% if selected_cuenta %}
+            <a href="{% url 'contabilidad:libro_mayor_imprimir' %}?cuenta={{ selected_cuenta }}" target="_blank" class="btn btn-primary px-4">
+                Generar Documento
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
