@@ -1,0 +1,586 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ContaCloud - Nueva Transacción{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+    .transaction-header {
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 1rem;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .table th {
+        background-color: #343a40;
+        color: white;
+        border: none;
+    }
+    
+    .monto-debe {
+        color: #198754;
+        font-weight: bold;
+    }
+    
+    .monto-haber {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .iva-badge {
+        background-color: #17a2b8;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    .balanceado {
+        color: #198754;
+    }
+    
+    .desbalanceado {
+        color: #dc3545;
+    }
+    
+    .movimiento-iva {
+        background-color: #f8f9fa !important;
+        border-left: 4px solid #17a2b8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="transaction-header mb-4 mt-4">
+        <h2><i class="bi bi-journal-plus"></i> Nueva Transacción</h2>
+        <p class="text-muted">Registre un nuevo asiento contable con soporte para IVA</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Columna izquierda: formulario -->
+        <div class="col-lg-5">
+            <div class="card p-3 shadow-sm">
+                <!-- Descripción General -->
+                <div class="mb-3">
+                    <label for="descripcion-general" class="form-label fw-bold">Descripción General del Asiento</label>
+                    <textarea class="form-control" id="descripcion-general" rows="2" 
+                              placeholder="Ej: Compra de materiales de oficina, Venta de productos, etc..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="fecha" class="form-label fw-bold">Fecha</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                        <input type="date" class="form-control" id="fecha" value="{{ fecha_actual }}">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="seleccionar-cuenta" class="form-label fw-bold">Seleccionar Cuenta</label>
+                    <div class="row g-2">
+                        <div class="col-7">
+                            <select id="seleccionar-cuenta" class="form-select">
+                                <option value="">Seleccione una cuenta</option>
+                                {% for cuenta in cuentas %}
+                                <option value="{{ cuenta.id }}" data-tipo="{{ cuenta.tipo }}" data-acepta-iva="{{ cuenta.acepta_iva }}">
+                                    {{ cuenta.codigo }} - {{ cuenta.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-5">
+                            <select id="tipo-movimiento" class="form-select">
+                                <option value="debe">Débito</option>
+                                <option value="haber">Crédito</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="monto" class="form-label fw-bold">Monto Base</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" id="monto" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <small class="text-muted">Monto sin IVA</small>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" id="iva" style="transform: scale(1.2);">
+                        <label class="form-check-label fw-bold" for="iva">
+                            <i class="bi bi-percent"></i> Aplicar IVA (13%)
+                        </label>
+                    </div>
+                    <div id="iva-calculo" class="mt-2 p-2 bg-light rounded" style="display: none;">
+                        <small>
+                            <strong>Cálculo IVA:</strong><br>
+                            Base: $<span id="monto-base">0.00</span><br>
+                            IVA (13%): $<span id="monto-iva">0.00</span><br>
+                            Total: $<span id="monto-total">0.00</span>
+                        </small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="descripcion" class="form-label fw-bold">Descripción del Movimiento</label>
+                    <textarea class="form-control" id="descripcion" rows="3" 
+                              placeholder="Descripción específica de este movimiento..."></textarea>
+                </div>
+
+                <button type="button" class="btn btn-primary w-100 mt-3" id="addMovementBtn">
+                    <i class="bi bi-plus-circle"></i> Añadir Movimiento
+                </button>
+                
+                <!-- Botón para guardar toda la transacción -->
+                <button type="button" class="btn btn-success w-100 mt-2" id="guardarTransaccionBtn" disabled>
+                    <i class="bi bi-check-circle"></i> Guardar Transacción
+                </button>
+            </div>
+        </div>
+
+        <!-- Columna derecha: tabla de movimientos -->
+        <div class="col-lg-7">
+            <div class="card p-3 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list-check"></i> Movimientos del Asiento
+                    </h5>
+                    <div class="text-end">
+                        <div id="balance-status">
+                            <small class="text-muted">Estado: <span id="estado-balance" class="desbalanceado">Desbalanceado</span></small>
+                        </div>
+                        <small class="text-muted">Total Débito: <span id="total-debe" class="monto-debe">$0.00</span></small><br>
+                        <small class="text-muted">Total Crédito: <span id="total-haber" class="monto-haber">$0.00</span></small>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="movementsTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Cuenta</th>
+                                <th class="text-end">Débito</th>
+                                <th class="text-end">Crédito</th>
+                                <th>Descripción</th>
+                                <th>IVA</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="no-movements-row">
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                    <p class="mt-2">Aún no hay movimientos.</p>
+                                    <small class="text-muted">Agregue al menos 2 movimientos para guardar</small>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-success">
+                    <i class="bi bi-check-circle-fill"></i> Transacción Guardada
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="modal-message">La transacción se ha guardado exitosamente.</p>
+                <div id="iva-info" style="display: none;">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Esta transacción incluye movimientos de IVA.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cerrar
+                </button>
+                <a href="{% url 'contabilidad:libro_diario' %}" class="btn btn-primary">
+                    <i class="bi bi-journal-text"></i> Ver Libro Diario
+                </a>
+                <button type="button" class="btn btn-outline-primary" onclick="location.reload()">
+                    <i class="bi bi-plus-circle"></i> Nueva Transacción
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de error -->
+<div class="modal fade" id="errorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Error
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="error-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addMovementBtn = document.getElementById('addMovementBtn');
+    const guardarTransaccionBtn = document.getElementById('guardarTransaccionBtn');
+    const movementsTableBody = document.querySelector('#movementsTable tbody');
+    const ivaCheckbox = document.getElementById('iva');
+    const ivaCalculoDiv = document.getElementById('iva-calculo');
+    let noMovementsRow = document.getElementById('no-movements-row');
+    let movementCount = 0;
+    let movimientos = [];
+    
+    // Cuentas de IVA (deben existir en tu base de datos)
+    const CUENTA_IVA_PAGAR = {% if cuenta_iva_pagar %}{{ cuenta_iva_pagar.id }}{% else %}null{% endif %}
+    const CUENTA_IVA_COBRAR = {% if cuenta_iva_cobrar %}{{ cuenta_iva_cobrar.id }}{% else %}null{% endif %}
+
+    // Actualizar cálculo de IVA en tiempo real
+    document.getElementById('monto').addEventListener('input', actualizarCalculoIVA);
+    ivaCheckbox.addEventListener('change', actualizarCalculoIVA);
+
+    function actualizarCalculoIVA() {
+        const montoBase = parseFloat(document.getElementById('monto').value) || 0;
+        const aplicarIVA = ivaCheckbox.checked;
+        
+        if (aplicarIVA && montoBase > 0) {
+            const montoIVA = montoBase * 0.13;
+            const montoTotal = montoBase + montoIVA;
+            
+            document.getElementById('monto-base').textContent = montoBase.toFixed(2);
+            document.getElementById('monto-iva').textContent = montoIVA.toFixed(2);
+            document.getElementById('monto-total').textContent = montoTotal.toFixed(2);
+            ivaCalculoDiv.style.display = 'block';
+        } else {
+            ivaCalculoDiv.style.display = 'none';
+        }
+    }
+
+    function actualizarTotales() {
+        let totalDebe = 0;
+        let totalHaber = 0;
+        
+        movimientos.forEach(mov => {
+            totalDebe += parseFloat(mov.debe);
+            totalHaber += parseFloat(mov.haber);
+        });
+        
+        document.getElementById('total-debe').textContent = `$${totalDebe.toFixed(2)}`;
+        document.getElementById('total-haber').textContent = `$${totalHaber.toFixed(2)}`;
+        
+        // Verificar balance
+        const estaBalanceado = totalDebe.toFixed(2) === totalHaber.toFixed(2);
+        const estadoBalance = document.getElementById('estado-balance');
+        
+        if (estaBalanceado) {
+            estadoBalance.textContent = 'Balanceado';
+            estadoBalance.className = 'balanceado';
+            guardarTransaccionBtn.disabled = false;
+        } else {
+            estadoBalance.textContent = 'Desbalanceado';
+            estadoBalance.className = 'desbalanceado';
+            guardarTransaccionBtn.disabled = true;
+        }
+        
+        // Habilitar botón de guardar si hay al menos 2 movimientos
+        guardarTransaccionBtn.disabled = guardarTransaccionBtn.disabled || movimientos.length < 2;
+    }
+
+    function calcularConIVA(montoBase, aplicarIVA) {
+        if (aplicarIVA) {
+            return {
+                base: montoBase,
+                iva: montoBase * 0.13,
+                total: montoBase * 1.13
+            };
+        }
+        return {
+            base: montoBase,
+            iva: 0,
+            total: montoBase
+        };
+    }
+
+    function crearMovimientoIVA(montoBase, descripcionBase, esDebito) {
+        const montoIVA = montoBase * 0.13;
+        const cuentaIVA = esDebito ? CUENTA_IVA_PAGAR : CUENTA_IVA_COBRAR;
+        const nombreCuentaIVA = esDebito ? 'IVA Por Pagar' : 'IVA Por Cobrar';
+        
+        if (cuentaIVA) {
+            const movimientoIVA = {
+                id: Date.now() + 1,
+                cuenta_id: cuentaIVA,
+                cuenta_nombre: nombreCuentaIVA,
+                debe: esDebito ? '0.00' : montoIVA.toFixed(2),
+                haber: esDebito ? montoIVA.toFixed(2) : '0.00',
+                descripcion: `IVA - ${descripcionBase}`,
+                es_iva: true,
+                monto_base: montoBase,
+                monto_iva: montoIVA
+            };
+            agregarMovimientoATabla(movimientoIVA);
+            movimientos.push(movimientoIVA);
+            return true;
+        }
+        return false;
+    }
+
+    function agregarMovimientoATabla(movimiento) {
+        if (noMovementsRow) {
+            noMovementsRow.remove();
+            noMovementsRow = null;
+        }
+
+        movementCount++;
+
+        const newRow = movementsTableBody.insertRow();
+        if (movimiento.es_iva) {
+            newRow.classList.add('movimiento-iva');
+        }
+        newRow.setAttribute('data-movement-id', movimiento.id);
+
+        const cellNum = newRow.insertCell(0);
+        const cellCuenta = newRow.insertCell(1);
+        const cellDebe = newRow.insertCell(2);
+        const cellHaber = newRow.insertCell(3);
+        const cellDescripcion = newRow.insertCell(4);
+        const cellIVA = newRow.insertCell(5);
+        const cellOpciones = newRow.insertCell(6);
+
+        cellNum.textContent = movementCount;
+        cellCuenta.textContent = movimiento.cuenta_nombre;
+        
+        cellDebe.textContent = movimiento.debe > 0 ? `$${parseFloat(movimiento.debe).toFixed(2)}` : '-';
+        cellDebe.className = 'text-end';
+        if (movimiento.debe > 0) cellDebe.classList.add('monto-debe');
+        
+        cellHaber.textContent = movimiento.haber > 0 ? `$${parseFloat(movimiento.haber).toFixed(2)}` : '-';
+        cellHaber.className = 'text-end';
+        if (movimiento.haber > 0) cellHaber.classList.add('monto-haber');
+        
+        cellDescripcion.textContent = movimiento.descripcion || '—';
+        
+        // Columna IVA
+        if (movimiento.es_iva) {
+            cellIVA.innerHTML = '<span class="iva-badge">IVA</span>';
+        } else if (movimiento.monto_iva > 0) {
+            cellIVA.innerHTML = `<small>+IVA<br>$${movimiento.monto_iva.toFixed(2)}</small>`;
+        } else {
+            cellIVA.innerHTML = '<small class="text-muted">-</small>';
+        }
+        cellIVA.className = 'text-center';
+
+        // Botón eliminar
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn btn-sm btn-outline-danger';
+        deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+        deleteBtn.title = 'Eliminar movimiento';
+        deleteBtn.addEventListener('click', function() {
+            // Remover de la lista
+            movimientos = movimientos.filter(m => m.id !== movimiento.id);
+            newRow.remove();
+            
+            // Actualizar números consecutivos
+            const rows = movementsTableBody.querySelectorAll('tr');
+            rows.forEach((row, index) => {
+                if (row.cells[0]) {
+                    row.cells[0].textContent = index + 1;
+                }
+            });
+            
+            if (movementsTableBody.children.length === 0) {
+                const emptyRow = movementsTableBody.insertRow();
+                emptyRow.id = 'no-movements-row';
+                const emptyCell = emptyRow.insertCell(0);
+                emptyCell.colSpan = 7;
+                emptyCell.className = 'text-center text-muted py-4';
+                emptyCell.innerHTML = `
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mt-2">Aún no hay movimientos.</p>
+                    <small class="text-muted">Agregue al menos 2 movimientos para guardar</small>
+                `;
+                noMovementsRow = emptyRow;
+            }
+            
+            actualizarTotales();
+        });
+        cellOpciones.appendChild(deleteBtn);
+    }
+
+    addMovementBtn.addEventListener('click', function() {
+        const fechaInput = document.getElementById('fecha');
+        const cuentaSelect = document.getElementById('seleccionar-cuenta');
+        const tipoMovimientoSelect = document.getElementById('tipo-movimiento');
+        const montoInput = document.getElementById('monto');
+        const descripcionInput = document.getElementById('descripcion');
+        const ivaCheck = document.getElementById('iva');
+        const descripcionGeneral = document.getElementById('descripcion-general').value;
+
+        const fecha = fechaInput.value;
+        const cuentaId = cuentaSelect.value;
+        const cuentaNombre = cuentaSelect.options[cuentaSelect.selectedIndex].text;
+        const tipoMovimiento = tipoMovimientoSelect.value;
+        let montoBase = parseFloat(montoInput.value);
+        const descripcion = descripcionInput.value.trim();
+        const aplicarIVA = ivaCheck.checked;
+        const esDebito = tipoMovimiento === 'debe';
+
+        // Validación de campos
+        if (!fecha) {
+            mostrarError('Por favor, selecciona una fecha.');
+            fechaInput.focus();
+            return;
+        }
+
+        if (!cuentaId) {
+            mostrarError('Por favor, selecciona una cuenta.');
+            cuentaSelect.focus();
+            return;
+        }
+
+        if (isNaN(montoBase) || montoBase <= 0) {
+            mostrarError('Por favor, ingresa un monto válido mayor que cero.');
+            montoInput.focus();
+            return;
+        }
+
+        // Calcular montos (con IVA si aplica)
+        const montos = calcularConIVA(montoBase, aplicarIVA);
+        
+        // Crear movimiento principal
+        const movimiento = {
+            id: Date.now(),
+            cuenta_id: cuentaId,
+            cuenta_nombre: cuentaNombre,
+            debe: esDebito ? montos.total.toFixed(2) : '0.00',
+            haber: esDebito ? '0.00' : montos.total.toFixed(2),
+            descripcion: descripcion || descripcionGeneral,
+            es_iva: false,
+            monto_base: montos.base,
+            monto_iva: montos.iva
+        };
+
+        // Agregar movimiento principal
+        agregarMovimientoATabla(movimiento);
+        movimientos.push(movimiento);
+
+        // Si aplica IVA, crear movimiento automático de IVA
+        if (aplicarIVA && montos.iva > 0) {
+            const ivaCreado = crearMovimientoIVA(montoBase, descripcion || descripcionGeneral, esDebito);
+            if (!ivaCreado) {
+                mostrarError('No se encontró la cuenta de IVA configurada en el sistema.');
+            }
+        }
+
+        // Limpiar campos del formulario (excepto fecha y descripción general)
+        montoInput.value = '';
+        cuentaSelect.selectedIndex = 0;
+        tipoMovimientoSelect.selectedIndex = 0;
+        descripcionInput.value = '';
+        ivaCheck.checked = false;
+        ivaCalculoDiv.style.display = 'none';
+
+        // Actualizar totales
+        actualizarTotales();
+    });
+
+    // Guardar transacción completa
+    guardarTransaccionBtn.addEventListener('click', function() {
+        const fecha = document.getElementById('fecha').value;
+        const descripcionGeneral = document.getElementById('descripcion-general').value;
+
+        if (!descripcionGeneral) {
+            mostrarError('Por favor, ingresa una descripción general para el asiento.');
+            document.getElementById('descripcion-general').focus();
+            return;
+        }
+
+        if (movimientos.length < 2) {
+            mostrarError('Debe haber al menos 2 movimientos para guardar la transacción.');
+            return;
+        }
+
+        // Mostrar loading
+        guardarTransaccionBtn.disabled = true;
+        const originalText = guardarTransaccionBtn.innerHTML;
+        guardarTransaccionBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Guardando...';
+
+        // Enviar datos al servidor
+        fetch('{% url "contabilidad:guardar_transaccion" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                fecha: fecha,
+                descripcion_general: descripcionGeneral,
+                movimientos: movimientos
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mostrar modal de éxito
+                document.getElementById('modal-message').textContent = data.message;
+                if (data.tiene_iva) {
+                    document.getElementById('iva-info').style.display = 'block';
+                }
+                const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+                modal.show();
+            } else {
+                mostrarError(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarError('Error al guardar la transacción: ' + error.message);
+        })
+        .finally(() => {
+            guardarTransaccionBtn.disabled = false;
+            guardarTransaccionBtn.innerHTML = originalText;
+        });
+    });
+
+    function mostrarError(mensaje) {
+        document.getElementById('error-message').textContent = mensaje;
+        const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+        modal.show();
+    }
+
+    // Inicializar tooltips de Bootstrap
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

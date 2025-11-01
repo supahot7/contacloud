@@ -44,40 +44,19 @@
                     <th>Nombre</th>
                     <th>Tipo</th>
                     <th>Descripción</th>
-                    <th>Cuenta Padre</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
+
+                {# 🔹 Bucle para usar con la base de datos #}
+                
                 {% for cuenta in cuentas %}
                 <tr>
-                    <td><strong>{{ cuenta.codigo }}</strong></td>
+                    <td>{{ cuenta.codigo }}</td>
                     <td>{{ cuenta.nombre }}</td>
-                    <td>
-                        <span class="badge 
-                            {% if cuenta.tipo == 'Activo' %}bg-primary
-                            {% elif cuenta.tipo == 'Pasivo' %}bg-warning
-                            {% elif cuenta.tipo == 'Capital' %}bg-success
-                            {% elif cuenta.tipo == 'Ingresos' %}bg-info
-                            {% elif cuenta.tipo == 'Gastos' %}bg-danger
-                            {% else %}bg-secondary{% endif %}">
-                            {{ cuenta.tipo }}
-                        </span>
-                    </td>
-                    <td>
-                        {% if cuenta.descripcion %}
-                            {{ cuenta.descripcion }}
-                        {% else %}
-                            <span class="text-muted">Sin descripción</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if cuenta.cuenta_padre %}
-                            {{ cuenta.cuenta_padre.codigo }} - {{ cuenta.cuenta_padre.nombre }}
-                        {% else %}
-                            <span class="text-muted">Cuenta principal</span>
-                        {% endif %}
-                    </td>
+                    <td>{{ cuenta.tipo }}</td>
+                    <td>{{ cuenta.descripcion }}</td>
                     <td>
                         <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
                         <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
@@ -85,56 +64,76 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center py-4">
-                        <div class="text-muted">
-                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                            <p class="mt-2">No hay cuentas registradas en el catálogo.</p>
-                            <button class="btn btn-primary mt-2">+ Agregar primera cuenta</button>
-                        </div>
-                    </td>
+                    <td colspan="5" class="text-center">No hay cuentas registradas.</td>
                 </tr>
                 {% endfor %}
+                
+
+                {# 🔹 Datos quemados (solo para diseño visual) #}
+                <tr>
+                    <td>1101</td>
+                    <td>Caja General</td>
+                    <td>Activo</td>
+                    <td>Efectivo disponible en caja</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
+                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>1102</td>
+                    <td>Bancos Nacionales</td>
+                    <td>Activo</td>
+                    <td>Depósitos en cuentas corrientes</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
+                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>2101</td>
+                    <td>Proveedores</td>
+                    <td>Pasivo</td>
+                    <td>Deudas con proveedores locales</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
+                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>3101</td>
+                    <td>Capital Social</td>
+                    <td>Capital</td>
+                    <td>Aportaciones de los socios</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
+                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>4101</td>
+                    <td>Ingresos por Ventas</td>
+                    <td>Ingresos</td>
+                    <td>Juan Pérez - 20/09/2025</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
+                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>5101</td>
+                    <td>Gastos de Oficina</td>
+                    <td>Gastos</td>
+                    <td>Consumo de papelería y suministros</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1">✏️ Editar</button>
+                        <button class="btn btn-sm btn-danger">🗑️ Eliminar</button>
+                    </td>
+                </tr>
+
             </tbody>
         </table>
     </div>
 
 </div>
-
-<!-- JavaScript para búsqueda y filtros -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const buscarInput = document.getElementById('buscar');
-    const filtroTipo = document.getElementById('filtro-tipo');
-    const filas = document.querySelectorAll('tbody tr');
-    
-    function filtrarCuentas() {
-        const textoBusqueda = buscarInput.value.toLowerCase();
-        const tipoSeleccionado = filtroTipo.value;
-        
-        filas.forEach(fila => {
-            const codigo = fila.cells[0].textContent.toLowerCase();
-            const nombre = fila.cells[1].textContent.toLowerCase();
-            const tipo = fila.cells[2].textContent.toLowerCase();
-            
-            const coincideBusqueda = codigo.includes(textoBusqueda) || nombre.includes(textoBusqueda);
-            const coincideTipo = tipoSeleccionado === 'todos' || tipo.includes(tipoSeleccionado);
-            
-            if (coincideBusqueda && coincideTipo) {
-                fila.style.display = '';
-            } else {
-                fila.style.display = 'none';
-            }
-        });
-    }
-    
-    buscarInput.addEventListener('input', filtrarCuentas);
-    filtroTipo.addEventListener('change', filtrarCuentas);
-});
-</script>
-
-<style>
-.badge {
-    font-size: 0.75em;
-}
-</style>
 {% endblock %}
