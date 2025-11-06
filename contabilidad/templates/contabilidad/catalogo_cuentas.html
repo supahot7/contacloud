@@ -1,5 +1,7 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Catálogo de
-Cuentas{% endblock %} {% block content %}
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Catálogo de Cuentas{% endblock %}
+{% block content %}
 
 <div class="container py-4">
   <!-- Header -->
@@ -28,13 +30,23 @@ Cuentas{% endblock %} {% block content %}
         <option value="pasivo">Pasivo</option>
         <option value="capital">Capital</option>
         <option value="ingresos">Ingresos</option>
-        <option value="gastos">Gastos</option>
+        <option value="costos_gastos">Costos y Gastos</option>
       </select>
     </div>
     <div class="col-md-2">
       <button class="btn btn-primary w-100" id="btnNuevaCuenta">
         + Nueva Cuenta
       </button>
+    </div>
+    <div class="col-md-3">
+      <div class="btn-group w-100">
+        <button class="btn btn-outline-secondary" id="btnExpandirTodo">
+          Expandir Todo
+        </button>
+        <button class="btn btn-outline-secondary" id="btnColapsarTodo">
+          Colapsar Todo
+        </button>
+      </div>
     </div>
   </div>
 
@@ -43,17 +55,15 @@ Cuentas{% endblock %} {% block content %}
     <table class="table table-striped table-hover align-middle">
       <thead class="table-dark">
         <tr>
-          <th>Código</th>
+          <th width="120">Código</th>
           <th>Nombre</th>
-          <th>Tipo</th>
+          <th width="120">Tipo</th>
           <th>Descripción</th>
-          <th class="text-center">Acciones</th>
+          <th width="200" class="text-center">Acciones</th>
         </tr>
       </thead>
       <tbody id="tablaCuentas">
-        <tr>
-          <td colspan="5" class="text-center">No hay cuentas registradas.</td>
-        </tr>
+        <!-- Las cuentas se cargarán aquí dinámicamente -->
       </tbody>
     </table>
   </div>
@@ -76,39 +86,47 @@ Cuentas{% endblock %} {% block content %}
             type="text"
             id="codigo"
             class="form-control"
-            placeholder="Ej: 1101, 2101, 3101..."
+            placeholder="Ej: 1.1.1, 1.1.2, 2.1.1..."
             required
           />
-          <small class="form-text"
-            >Formato: 4 dígitos (1xxx=Activo, 2xxx=Pasivo, 3xxx=Capital,
-            4xxx=Ingresos, 5xxx=Gastos)</small
-          >
+          <small class="form-text">
+            Formato: X.X.X (hasta 3 niveles)<br>
+            <strong>Activo:</strong> 1.x.x<br>
+            <strong>Pasivo:</strong> 2.x.x<br>
+            <strong>Capital:</strong> 3.x.x<br>
+            <strong>Ingresos:</strong> 4.x.x<br>
+            <strong>Costos y Gastos:</strong> 5.x.x
+          </small>
         </div>
 
         <div class="form-group">
-          <label for="nombre"
-            >Nombre de la Cuenta <span class="required">*</span></label
-          >
+          <label for="nombre">Nombre de la Cuenta <span class="required">*</span></label>
           <input
             type="text"
             id="nombre"
             class="form-control"
-            placeholder="Ej: Caja General"
+            placeholder="Ej: Caja, Bancos, Proveedores, etc."
             required
           />
         </div>
 
         <div class="form-group">
-          <label for="tipo"
-            >Tipo de Cuenta <span class="required">*</span></label
-          >
+          <label for="tipo">Tipo de Cuenta Principal <span class="required">*</span></label>
           <select id="tipo" class="form-control" required>
             <option value="">-- Seleccione un tipo --</option>
-            <option value="Activo">Activo</option>
-            <option value="Pasivo">Pasivo</option>
-            <option value="Capital">Capital</option>
-            <option value="Ingresos">Ingresos</option>
-            <option value="Gastos">Gastos</option>
+            <option value="activo">Activo</option>
+            <option value="pasivo">Pasivo</option>
+            <option value="capital">Capital</option>
+            <option value="ingresos">Ingresos</option>
+            <option value="costos_gastos">Costos y Gastos</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="grupo">Grupo Contable <span class="required">*</span></label>
+          <select id="grupo" class="form-control" required>
+            <option value="">-- Seleccione grupo --</option>
+            <!-- Grupos se cargarán dinámicamente -->
           </select>
         </div>
 
@@ -135,9 +153,6 @@ Cuentas{% endblock %} {% block content %}
 </div>
 
 <style>
-  /* ==============================
-   Estilos del Modal
-   ============================== */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -189,10 +204,6 @@ Cuentas{% endblock %} {% block content %}
     height: 30px;
   }
 
-  .modal-close:hover {
-    opacity: 0.8;
-  }
-
   .modal-body {
     padding: 1.5rem;
   }
@@ -205,9 +216,6 @@ Cuentas{% endblock %} {% block content %}
     border-top: 1px solid #dee2e6;
   }
 
-  /* ==============================
-   Formulario
-   ============================== */
   .form-group {
     margin-bottom: 1.25rem;
   }
@@ -239,15 +247,13 @@ Cuentas{% endblock %} {% block content %}
     margin-top: 0.25rem;
     font-size: 0.875rem;
     color: #6c757d;
+    line-height: 1.4;
   }
 
   .required {
     color: #dc3545;
   }
 
-  /* ==============================
-   Botones del modal
-   ============================== */
   .btn-secondary {
     background-color: #6c757d;
     border: none;
@@ -263,113 +269,448 @@ Cuentas{% endblock %} {% block content %}
     background-color: #5a6268;
   }
 
+  .grupo-cuenta {
+    background-color: #f8f9fa;
+    border-left: 4px solid #007b80;
+  }
+
+  .grupo-header {
+    background-color: #e9ecef;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .grupo-header:hover {
+    background-color: #dee2e6;
+  }
+
+  .grupo-icono {
+    margin-right: 0.5rem;
+    transition: transform 0.3s ease;
+  }
+
+  .grupo-colapsado .grupo-icono {
+    transform: rotate(-90deg);
+  }
+
+  .cuenta-detalle {
+    background-color: white;
+  }
+
+  .cuenta-detalle:hover {
+    background-color: #f8f9fa;
+  }
+
+  .badge-tipo {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .badge-activo { background-color: #d4edda; color: #155724; }
+  .badge-pasivo { background-color: #f8d7da; color: #721c24; }
+  .badge-capital { background-color: #d1ecf1; color: #0c5460; }
+  .badge-ingresos { background-color: #fff3cd; color: #856404; }
+  .badge-costos_gastos { background-color: #e2e3e5; color: #383d41; }
+
+  .btn-acciones {
+    white-space: nowrap;
+  }
+
   @media (max-width: 768px) {
     .modal-container {
       width: 95%;
+    }
+    
+    .btn-group {
+      margin-top: 0.5rem;
+    }
+    
+    .btn-acciones {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    
+    .btn-acciones .btn {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
     }
   }
 </style>
 
 <script>
   // ==============================
-  // Variables globales
+  // ESTRUCTURA JERÁRQUICA COMPLETA
   // ==============================
-  let cuentas = [
-    {
-      codigo: "1101",
-      nombre: "Caja General",
-      tipo: "Activo",
-      descripcion: "Efectivo disponible en caja",
-    },
-    {
-      codigo: "1102",
-      nombre: "Bancos Nacionales",
-      tipo: "Activo",
-      descripcion: "Depósitos en cuentas corrientes",
-    },
-    {
-      codigo: "2101",
-      nombre: "Proveedores",
-      tipo: "Pasivo",
-      descripcion: "Deudas con proveedores locales",
-    },
-    {
-      codigo: "3101",
-      nombre: "Capital Social",
-      tipo: "Capital",
-      descripcion: "Aportaciones de los socios",
-    },
-    {
-      codigo: "4101",
-      nombre: "Ingresos por Ventas",
-      tipo: "Ingresos",
-      descripcion: "Ventas de productos y servicios",
-    },
-    {
-      codigo: "5101",
-      nombre: "Gastos de Oficina",
-      tipo: "Gastos",
-      descripcion: "Consumo de papelería y suministros",
-    },
-  ];
+  const estructuraCompleta = {
+    // ACTIVO
+    "1": { nombre: "ACTIVO", nivel: 0, tipo: "activo", grupo: "1", esGrupoPrincipal: true },
+    "1.1": { nombre: "Activo Corriente", nivel: 1, padre: "1", tipo: "activo", grupo: "1.1", esGrupoPrincipal: false },
+    "1.1.1": { nombre: "Caja", nivel: 2, padre: "1.1", tipo: "activo", grupo: "1.1.1", esGrupoPrincipal: false },
+    "1.1.2": { nombre: "Bancos", nivel: 2, padre: "1.1", tipo: "activo", grupo: "1.1.2", esGrupoPrincipal: false },
+    "1.1.3": { nombre: "IVA Crédito Fiscal", nivel: 2, padre: "1.1", tipo: "activo", grupo: "1.1.3", esGrupoPrincipal: false },
+    "1.1.4": { nombre: "Inventario de licencias de software", nivel: 2, padre: "1.1", tipo: "activo", grupo: "1.1.4", esGrupoPrincipal: false },
+    "1.1.5": { nombre: "Gastos pagados por anticipado", nivel: 2, padre: "1.1", tipo: "activo", grupo: "1.1.5", esGrupoPrincipal: false },
+    
+    "1.2": { nombre: "Activo No Corriente", nivel: 1, padre: "1", tipo: "activo", grupo: "1.2", esGrupoPrincipal: false },
+    "1.2.1": { nombre: "Propiedad, planta y equipo", nivel: 2, padre: "1.2", tipo: "activo", grupo: "1.2.1", esGrupoPrincipal: false },
+    "1.2.1.1": { nombre: "Equipos de cómputo", nivel: 3, padre: "1.2.1", tipo: "activo", grupo: "1.2.1.1", esGrupoPrincipal: false },
+    "1.2.1.2": { nombre: "Mobiliario y Equipo de oficina", nivel: 3, padre: "1.2.1", tipo: "activo", grupo: "1.2.1.2", esGrupoPrincipal: false },
+    
+    "1.2.2": { nombre: "Activos intangibles", nivel: 2, padre: "1.2", tipo: "activo", grupo: "1.2.2", esGrupoPrincipal: false },
+    "1.2.2.1": { nombre: "Licencias y derechos de uso", nivel: 3, padre: "1.2.2", tipo: "activo", grupo: "1.2.2.1", esGrupoPrincipal: false },
+    "1.2.2.2": { nombre: "Amortización acumulada de intangibles", nivel: 3, padre: "1.2.2", tipo: "activo", grupo: "1.2.2.2", esGrupoPrincipal: false },
+    "1.2.2.3": { nombre: "Software propio", nivel: 3, padre: "1.2.2", tipo: "activo", grupo: "1.2.2.3", esGrupoPrincipal: false },
 
+    // PASIVO
+    "2": { nombre: "PASIVO", nivel: 0, tipo: "pasivo", grupo: "2", esGrupoPrincipal: true },
+    "2.1": { nombre: "Pasivo Corriente", nivel: 1, padre: "2", tipo: "pasivo", grupo: "2.1", esGrupoPrincipal: false },
+    "2.1.1": { nombre: "Proveedores", nivel: 2, padre: "2.1", tipo: "pasivo", grupo: "2.1.1", esGrupoPrincipal: false },
+    "2.1.2": { nombre: "Sueldos y prestaciones por pagar", nivel: 2, padre: "2.1", tipo: "pasivo", grupo: "2.1.2", esGrupoPrincipal: false },
+    "2.1.3": { nombre: "Impuestos por pagar", nivel: 2, padre: "2.1", tipo: "pasivo", grupo: "2.1.3", esGrupoPrincipal: false },
+    "2.1.4": { nombre: "IVA Débito fiscal", nivel: 2, padre: "2.1", tipo: "pasivo", grupo: "2.1.4", esGrupoPrincipal: false },
+    "2.1.5": { nombre: "Préstamos a corto plazo", nivel: 2, padre: "2.1", tipo: "pasivo", grupo: "2.1.5", esGrupoPrincipal: false },
+    
+    "2.2": { nombre: "Pasivo No Corriente", nivel: 1, padre: "2", tipo: "pasivo", grupo: "2.2", esGrupoPrincipal: false },
+    "2.2.1": { nombre: "Préstamos bancarios a largo plazo", nivel: 2, padre: "2.2", tipo: "pasivo", grupo: "2.2.1", esGrupoPrincipal: false },
+
+    // CAPITAL
+    "3": { nombre: "CAPITAL", nivel: 0, tipo: "capital", grupo: "3", esGrupoPrincipal: true },
+    "3.1": { nombre: "Capital Social", nivel: 1, padre: "3", tipo: "capital", grupo: "3.1", esGrupoPrincipal: false },
+    "3.1.1": { nombre: "Capital Social", nivel: 2, padre: "3.1", tipo: "capital", grupo: "3.1.1", esGrupoPrincipal: false },
+    
+    "3.2": { nombre: "Utilidad del ejercicio", nivel: 1, padre: "3", tipo: "capital", grupo: "3.2", esGrupoPrincipal: false },
+
+    // INGRESOS
+    "4": { nombre: "INGRESOS", nivel: 0, tipo: "ingresos", grupo: "4", esGrupoPrincipal: true },
+    "4.1": { nombre: "Ingresos por Licencias", nivel: 1, padre: "4", tipo: "ingresos", grupo: "4.1", esGrupoPrincipal: false },
+    "4.2": { nombre: "Otros Ingresos", nivel: 1, padre: "4", tipo: "ingresos", grupo: "4.2", esGrupoPrincipal: false },
+
+    // COSTOS Y GASTOS
+    "5": { nombre: "COSTOS Y GASTOS", nivel: 0, tipo: "costos_gastos", grupo: "5", esGrupoPrincipal: true },
+    "5.1": { nombre: "Costos", nivel: 1, padre: "5", tipo: "costos_gastos", grupo: "5.1", esGrupoPrincipal: false },
+    "5.1.1": { nombre: "Costo de ventas de licencias digitales", nivel: 2, padre: "5.1", tipo: "costos_gastos", grupo: "5.1.1", esGrupoPrincipal: false },
+    "5.1.2": { nombre: "Costo de producción de software", nivel: 2, padre: "5.1", tipo: "costos_gastos", grupo: "5.1.2", esGrupoPrincipal: false },
+    "5.1.3": { nombre: "Costos indirectos de desarrollo", nivel: 2, padre: "5.1", tipo: "costos_gastos", grupo: "5.1.3", esGrupoPrincipal: false },
+    
+    "5.2": { nombre: "Gastos Operativos", nivel: 1, padre: "5", tipo: "costos_gastos", grupo: "5.2", esGrupoPrincipal: false },
+    "5.2.1": { nombre: "Gastos Administrativos", nivel: 2, padre: "5.2", tipo: "costos_gastos", grupo: "5.2.1", esGrupoPrincipal: false },
+    "5.2.1.1": { nombre: "Sueldos administrativos", nivel: 3, padre: "5.2.1", tipo: "costos_gastos", grupo: "5.2.1.1", esGrupoPrincipal: false },
+    "5.2.1.2": { nombre: "Servicios públicos y alquiler de oficinas", nivel: 3, padre: "5.2.1", tipo: "costos_gastos", grupo: "5.2.1.2", esGrupoPrincipal: false },
+    "5.2.1.3": { nombre: "Papelería y suministros", nivel: 3, padre: "5.2.1", tipo: "costos_gastos", grupo: "5.2.1.3", esGrupoPrincipal: false },
+    "5.2.1.4": { nombre: "Amortización de intangibles", nivel: 3, padre: "5.2.1", tipo: "costos_gastos", grupo: "5.2.1.4", esGrupoPrincipal: false },
+    
+    "5.2.2": { nombre: "Gastos de Ventas", nivel: 2, padre: "5.2", tipo: "costos_gastos", grupo: "5.2.2", esGrupoPrincipal: false },
+    "5.2.2.1": { nombre: "Publicidad y marketing digital", nivel: 3, padre: "5.2.2", tipo: "costos_gastos", grupo: "5.2.2.1", esGrupoPrincipal: false },
+    
+    "5.2.3": { nombre: "Gastos Financieros", nivel: 2, padre: "5.2", tipo: "costos_gastos", grupo: "5.2.3", esGrupoPrincipal: false },
+    "5.2.3.1": { nombre: "Intereses pagados", nivel: 3, padre: "5.2.3", tipo: "costos_gastos", grupo: "5.2.3.1", esGrupoPrincipal: false },
+    "5.2.3.2": { nombre: "Gastos bancarios", nivel: 3, padre: "5.2.3", tipo: "costos_gastos", grupo: "5.2.3.2", esGrupoPrincipal: false },
+    "5.2.3.3": { nombre: "Faltante de caja", nivel: 3, padre: "5.2.3", tipo: "costos_gastos", grupo: "5.2.3.3", esGrupoPrincipal: false }
+  };
+
+  // ==============================
+  // VARIABLES GLOBALES
+  // ==============================
+  let cuentas = [];
   let indiceEdicion = -1;
+  let gruposExpandidos = new Set(['1', '2', '3', '4', '5']);
 
   // ==============================
-  // Función para renderizar la tabla
+  // FUNCIONES PRINCIPALES
   // ==============================
-  function renderizarTabla(cuentasFiltradas = cuentas) {
+
+  // Cargar cuentas desde la base de datos
+  async function cargarCuentas() {
+    try {
+      const response = await fetch('/contabilidad/api/cuentas/');
+      if (response.ok) {
+        cuentas = await response.json();
+        console.log('Cuentas cargadas:', cuentas);
+        renderizarTabla();
+      } else {
+        console.error('Error cargando cuentas:', response.status);
+        mostrarMensaje('Error al cargar las cuentas', 'error');
+      }
+    } catch (error) {
+      console.error('Error cargando cuentas:', error);
+      mostrarMensaje('Error de conexión al cargar las cuentas', 'error');
+    }
+  }
+
+  // Renderizar tabla con estructura jerárquica
+  function renderizarTabla(cuentasFiltradas = null) {
     const tbody = document.getElementById("tablaCuentas");
+    const cuentasAMostrar = cuentasFiltradas || cuentas;
 
-    if (cuentasFiltradas.length === 0) {
+    if (cuentasAMostrar.length === 0) {
       tbody.innerHTML = `
-      <tr>
-        <td colspan="5" class="text-center" style="padding: 2rem; color: #6c757d;">
-          No hay cuentas registradas. Haz clic en "Nueva Cuenta" para agregar una.
-        </td>
-      </tr>
-    `;
+        <tr>
+          <td colspan="5" class="text-center" style="padding: 2rem; color: #6c757d;">
+            No se encontraron cuentas que coincidan con la búsqueda.
+          </td>
+        </tr>
+      `;
       return;
     }
 
-    tbody.innerHTML = cuentasFiltradas
-      .map((cuenta, index) => {
-        const indiceReal = cuentas.indexOf(cuenta);
-        return `
-    <tr>
-      <td>${cuenta.codigo}</td>
-      <td>${cuenta.nombre}</td>
-      <td><span class="badge-tipo badge-${cuenta.tipo.toLowerCase()}">${
-          cuenta.tipo
-        }</span></td>
-      <td>${cuenta.descripcion}</td>
-      <td class="text-center">
-        <button
-          type="button"
-          class="btn btn-sm btn-warning me-1"
-          onclick="editarCuenta(${indiceReal})"
-          title="Editar"
-        >
-          ✏️ Editar
-        </button>
-        <button
-          type="button"
-          class="btn btn-sm btn-danger"
-          onclick="eliminarCuenta(${indiceReal})"
-          title="Eliminar"
-        >
-          🗑️ Eliminar
-        </button>
-      </td>
-    </tr>
-  `;
-      })
-      .join("");
+    let html = '';
+    
+    // Función recursiva para renderizar grupos
+    function renderizarGrupo(grupoId, nivel = 0) {
+      const grupo = estructuraCompleta[grupoId];
+      if (!grupo) return '';
+
+      const estaExpandido = gruposExpandidos.has(grupoId);
+      const tieneHijos = Object.keys(estructuraCompleta).some(key => 
+        estructuraCompleta[key].padre === grupoId
+      );
+      
+      let grupoHtml = '';
+      const paddingLeft = (nivel * 20) + 'px';
+      const esGrupoPrincipal = grupo.esGrupoPrincipal;
+      const esExpandible = tieneHijos;
+
+      // Determinar qué acciones mostrar según el tipo de grupo
+      let accionesHtml = '';
+      if (esGrupoPrincipal) {
+        // Grupos principales (1, 2, 3, 4, 5) - solo pueden agregar subgrupos
+        accionesHtml = `
+          <button
+            type="button"
+            class="btn btn-sm btn-success me-1"
+            onclick="agregarSubgrupoEnGrupo('${grupoId}')"
+            title="Agregar subgrupo"
+          >
+            +
+          </button>
+        `;
+      } else {
+        // Subgrupos (5.1, 5.2, etc.) - tienen todas las acciones
+        accionesHtml = `
+          <button
+            type="button"
+            class="btn btn-sm btn-success me-1"
+            onclick="agregarCuentaEnGrupo('${grupoId}')"
+            title="Agregar cuenta"
+          >
+            + 
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-warning me-1"
+            onclick="editarGrupo('${grupoId}')"
+            title="Editar grupo"
+          >
+            ✏️
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-danger"
+            onclick="eliminarGrupo('${grupoId}')"
+            title="Eliminar grupo"
+          >
+            🗑️
+          </button>
+        `;
+      }
+
+      // Header del grupo
+      grupoHtml += `
+        <tr class="grupo-cuenta ${!estaExpandido ? 'grupo-colapsado' : ''}" data-grupo="${grupoId}">
+          <td class="grupo-header" style="padding-left: ${paddingLeft};">
+            ${esExpandible ? `<span class="grupo-icono">${estaExpandido ? '▼' : '▶'}</span>` : '<span style="width: 16px; display: inline-block;"></span>'}
+            <strong>${grupoId}</strong>
+          </td>
+          <td class="grupo-header">
+            <strong>${grupo.nombre}</strong>
+          </td>
+          <td class="grupo-header">
+            <span class="badge-tipo badge-${grupo.tipo}">${grupo.tipo.replace('_', ' ').toUpperCase()}</span>
+          </td>
+          <td class="grupo-header">
+            <em>${esGrupoPrincipal ? 'Grupo principal' : 'Subgrupo'}</em>
+          </td>
+          <td class="grupo-header text-center btn-acciones">
+            ${accionesHtml}
+          </td>
+        </tr>
+      `;
+
+      // Contenido del grupo (si está expandido)
+      if (estaExpandido) {
+        // 1. Renderizar subgrupos
+        const subgrupos = Object.keys(estructuraCompleta).filter(key => 
+          estructuraCompleta[key].padre === grupoId
+        );
+        
+        subgrupos.forEach(subgrupoId => {
+          grupoHtml += renderizarGrupo(subgrupoId, nivel + 1);
+        });
+
+        // 2. Renderizar cuentas que pertenecen a este grupo
+        const cuentasEnEsteGrupo = cuentasAMostrar.filter(cuenta => cuenta.grupo === grupoId);
+        
+        cuentasEnEsteGrupo.forEach((cuenta, index) => {
+          const indiceReal = cuentas.findIndex(c => c.id === cuenta.id);
+          grupoHtml += `
+            <tr class="cuenta-detalle">
+              <td style="padding-left: ${(nivel + 1) * 20}px;">
+                <strong>${cuenta.codigo}</strong>
+              </td>
+              <td>${cuenta.nombre}</td>
+              <td><span class="badge-tipo badge-${cuenta.tipo}">${cuenta.tipo.replace('_', ' ').toUpperCase()}</span></td>
+              <td>${cuenta.descripcion}</td>
+              <td class="text-center btn-acciones">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-warning me-1"
+                  onclick="editarCuenta(${indiceReal})"
+                  title="Editar"
+                >
+                  ✏️ 
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-danger"
+                  onclick="eliminarCuenta(${indiceReal})"
+                  title="Eliminar"
+                >
+                  🗑️ 
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+
+      return grupoHtml;
+    }
+
+    // Renderizar grupos principales
+    ['1', '2', '3', '4', '5'].forEach(grupoId => {
+      html += renderizarGrupo(grupoId);
+    });
+
+    tbody.innerHTML = html;
+
+    // Agregar event listeners para expandir/colapsar
+    tbody.querySelectorAll('.grupo-header').forEach(header => {
+      header.addEventListener('click', function() {
+        const grupoId = this.closest('tr').getAttribute('data-grupo');
+        toggleGrupo(grupoId);
+      });
+    });
   }
 
   // ==============================
-  // Función para abrir el modal
+  // FUNCIONES PARA GRUPOS
   // ==============================
+
+  function agregarSubgrupoEnGrupo(grupoPadreId) {
+    const grupoPadre = estructuraCompleta[grupoPadreId];
+    if (grupoPadre) {
+      // Encontrar el siguiente número de subgrupo disponible
+      const subgruposExistentes = Object.keys(estructuraCompleta).filter(key => 
+        estructuraCompleta[key].padre === grupoPadreId
+      );
+      
+      let siguienteNumero = 1;
+      if (subgruposExistentes.length > 0) {
+        const ultimoNumero = Math.max(...subgruposExistentes.map(subgrupoId => {
+          const partes = subgrupoId.split('.');
+          return parseInt(partes[partes.length - 1]) || 0;
+        }));
+        siguienteNumero = ultimoNumero + 1;
+      }
+      
+      const nuevoSubgrupoId = `${grupoPadreId}.${siguienteNumero}`;
+      const nombreSubgrupo = prompt(`Ingrese el nombre para el nuevo subgrupo ${nuevoSubgrupoId}:`);
+      
+      if (nombreSubgrupo) {
+        // Agregar el nuevo subgrupo a la estructura
+        estructuraCompleta[nuevoSubgrupoId] = {
+          nombre: nombreSubgrupo,
+          nivel: grupoPadre.nivel + 1,
+          padre: grupoPadreId,
+          tipo: grupoPadre.tipo,
+          grupo: nuevoSubgrupoId,
+          esGrupoPrincipal: false
+        };
+        
+        // Expandir el grupo padre para mostrar el nuevo subgrupo
+        gruposExpandidos.add(grupoPadreId);
+        renderizarTabla();
+        
+        mostrarMensaje(`Subgrupo ${nuevoSubgrupoId} creado exitosamente`, 'success');
+      }
+    }
+  }
+
+  function editarGrupo(grupoId) {
+    const grupo = estructuraCompleta[grupoId];
+    if (grupo) {
+      const nuevoNombre = prompt(`Editar nombre del grupo ${grupoId}:`, grupo.nombre);
+      if (nuevoNombre && nuevoNombre !== grupo.nombre) {
+        grupo.nombre = nuevoNombre;
+        renderizarTabla();
+        mostrarMensaje(`Grupo ${grupoId} actualizado exitosamente`, 'success');
+      }
+    }
+  }
+
+  function eliminarGrupo(grupoId) {
+    const grupo = estructuraCompleta[grupoId];
+    if (grupo) {
+      // Verificar si el grupo tiene cuentas asociadas
+      const cuentasEnGrupo = cuentas.filter(cuenta => cuenta.grupo === grupoId);
+      if (cuentasEnGrupo.length > 0) {
+        mostrarMensaje(`No se puede eliminar el grupo ${grupoId} porque tiene ${cuentasEnGrupo.length} cuenta(s) asociada(s)`, 'error');
+        return;
+      }
+      
+      // Verificar si el grupo tiene subgrupos
+      const tieneSubgrupos = Object.keys(estructuraCompleta).some(key => 
+        estructuraCompleta[key].padre === grupoId
+      );
+      
+      if (tieneSubgrupos) {
+        mostrarMensaje(`No se puede eliminar el grupo ${grupoId} porque tiene subgrupos asociados`, 'error');
+        return;
+      }
+      
+      if (confirm(`¿Está seguro que desea eliminar el grupo "${grupoId} - ${grupo.nombre}"?`)) {
+        delete estructuraCompleta[grupoId];
+        renderizarTabla();
+        mostrarMensaje(`Grupo ${grupoId} eliminado exitosamente`, 'success');
+      }
+    }
+  }
+
+  // ==============================
+  // FUNCIONES DEL MODAL - CORREGIDAS
+  // ==============================
+
+  function actualizarGruposModal() {
+    const tipo = document.getElementById("tipo").value;
+    const grupoSelect = document.getElementById("grupo");
+    
+    grupoSelect.innerHTML = '<option value="">-- Seleccione grupo --</option>';
+    
+    if (tipo) {
+      // Filtrar grupos por tipo (solo grupos de nivel 1 - X.X)
+      Object.keys(estructuraCompleta).forEach(grupoId => {
+        const grupo = estructuraCompleta[grupoId];
+        // Mostrar solo grupos de nivel 1 del tipo seleccionado (formato X.X)
+        if (grupo.tipo === tipo && grupo.nivel === 1) {
+          grupoSelect.innerHTML += `<option value="${grupoId}">${grupoId} - ${grupo.nombre}</option>`;
+        }
+      });
+    }
+  }
+
   function abrirModal(esNuevo = true, index = -1) {
     const modal = document.getElementById("modalCuenta");
     const titulo = document.getElementById("modalTitulo");
@@ -380,121 +721,202 @@ Cuentas{% endblock %} {% block content %}
     if (esNuevo) {
       titulo.textContent = "Nueva Cuenta";
       form.reset();
+      // Limpiar grupos al abrir modal nuevo
+      document.getElementById("grupo").innerHTML = '<option value="">-- Seleccione grupo --</option>';
     } else {
       titulo.textContent = "Editar Cuenta";
       const cuenta = cuentas[index];
       document.getElementById("codigo").value = cuenta.codigo;
       document.getElementById("nombre").value = cuenta.nombre;
       document.getElementById("tipo").value = cuenta.tipo;
+      
+      // Actualizar grupos primero y luego seleccionar el grupo de la cuenta
+      actualizarGruposModal();
+      document.getElementById("grupo").value = cuenta.grupo;
+      
       document.getElementById("descripcion").value = cuenta.descripcion;
     }
 
     modal.style.display = "flex";
   }
 
-  // ==============================
-  // Función para cerrar el modal
-  // ==============================
   function cerrarModal() {
     document.getElementById("modalCuenta").style.display = "none";
     document.getElementById("formCuenta").reset();
     indiceEdicion = -1;
   }
 
-  // ==============================
-  // Función para validar código
-  // ==============================
-  function validarCodigo(codigo) {
-    // Validar que sea un número de 4 dígitos
-    if (!/^\d{4}$/.test(codigo)) {
-      alert("El código debe tener exactamente 4 dígitos.");
-      return false;
+  function agregarCuentaEnGrupo(grupoId) {
+    const grupo = estructuraCompleta[grupoId];
+    if (grupo) {
+      abrirModal(true);
+      document.getElementById("tipo").value = grupo.tipo;
+      
+      // Actualizar grupos y luego seleccionar el grupo específico
+      actualizarGruposModal();
+      document.getElementById("grupo").value = grupoId;
+      
+      // Generar código sugerido
+      const siguienteCodigo = generarSiguienteCodigo(grupoId);
+      document.getElementById("codigo").value = siguienteCodigo;
     }
+  }
 
-    // Validar que no exista ya (solo para nuevas cuentas)
-    if (indiceEdicion === -1 && cuentas.some((c) => c.codigo === codigo)) {
-      alert("Ya existe una cuenta con ese código.");
-      return false;
+  function generarSiguienteCodigo(grupoPadre) {
+    const cuentasEnGrupo = cuentas.filter(cuenta => cuenta.grupo === grupoPadre);
+    let siguienteNumero = 1;
+    
+    if (cuentasEnGrupo.length > 0) {
+      const ultimoCodigo = Math.max(...cuentasEnGrupo.map(c => {
+        const partes = c.codigo.split('.');
+        return parseInt(partes[partes.length - 1]) || 0;
+      }));
+      siguienteNumero = ultimoCodigo + 1;
     }
-
-    return true;
+    
+    return `${grupoPadre}.${siguienteNumero}`;
   }
 
   // ==============================
-  // Función para guardar cuenta
+  // CRUD OPERATIONS
   // ==============================
-  function guardarCuenta() {
+
+  async function guardarCuenta() {
     const codigo = document.getElementById("codigo").value.trim();
     const nombre = document.getElementById("nombre").value.trim();
     const tipo = document.getElementById("tipo").value;
-    const descripcion =
-      document.getElementById("descripcion").value.trim() || "Sin descripción";
+    const grupo = document.getElementById("grupo").value;
+    const descripcion = document.getElementById("descripcion").value.trim() || "Sin descripción";
 
-    if (!codigo || !nombre || !tipo) {
-      alert("Por favor, complete todos los campos obligatorios.");
+    if (!codigo || !nombre || !tipo || !grupo) {
+      mostrarMensaje("Por favor, complete todos los campos obligatorios.", "error");
       return;
     }
 
-    if (!validarCodigo(codigo)) {
+    // Validar formato del código
+    if (!/^\d+(\.\d+)*$/.test(codigo)) {
+      mostrarMensaje("El código debe seguir el formato X.X.X (números separados por puntos)", "error");
       return;
     }
 
-    const cuenta = {
-      codigo,
-      nombre,
-      tipo,
-      descripcion,
+    const cuentaData = {
+      codigo: codigo,
+      nombre: nombre,
+      tipo: tipo,
+      descripcion: descripcion,
+      grupo: grupo
     };
 
-    if (indiceEdicion >= 0) {
-      cuentas[indiceEdicion] = cuenta;
-      alert("¡Cuenta actualizada exitosamente!");
-    } else {
-      cuentas.push(cuenta);
-      alert("¡Cuenta agregada exitosamente!");
+    try {
+      let response;
+      let url = '/contabilidad/api/cuentas/';
+      let method = 'POST';
+      
+      if (indiceEdicion >= 0) {
+        const cuentaId = cuentas[indiceEdicion].id;
+        url = `/contabilidad/api/cuentas/${cuentaId}/`;
+        method = 'PUT';
+      }
+
+      response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(cuentaData)
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        await cargarCuentas();
+        mostrarMensaje(result.message, 'success');
+        cerrarModal();
+      } else {
+        mostrarMensaje(result.message, 'error');
+      }
+    } catch (error) {
+      console.error('Error guardando cuenta:', error);
+      mostrarMensaje('Error de conexión al guardar la cuenta', 'error');
     }
-
-    // Ordenar cuentas por código
-    cuentas.sort((a, b) => a.codigo.localeCompare(b.codigo));
-
-    renderizarTabla();
-    cerrarModal();
   }
 
-  // ==============================
-  // Función para editar cuenta
-  // ==============================
+  async function eliminarCuenta(index) {
+    const cuenta = cuentas[index];
+    
+    if (confirm(`¿Está seguro que desea eliminar la cuenta "${cuenta.codigo} - ${cuenta.nombre}"?`)) {
+      try {
+        const response = await fetch(`/contabilidad/api/cuentas/${cuenta.id}/`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRFToken': getCSRFToken()
+          }
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          await cargarCuentas();
+          mostrarMensaje(result.message, 'success');
+        } else {
+          mostrarMensaje(result.message, 'error');
+        }
+      } catch (error) {
+        console.error('Error eliminando cuenta:', error);
+        mostrarMensaje('Error de conexión al eliminar la cuenta', 'error');
+      }
+    }
+  }
+
   function editarCuenta(index) {
     abrirModal(false, index);
   }
 
   // ==============================
-  // Función para eliminar cuenta
+  // FUNCIONES AUXILIARES
   // ==============================
-  function eliminarCuenta(index) {
-    const cuenta = cuentas[index];
 
-    if (
-      confirm(
-        `¿Está seguro que desea eliminar la cuenta "${cuenta.codigo} - ${cuenta.nombre}"?`
-      )
-    ) {
-      cuentas.splice(index, 1);
-      renderizarTabla();
-      alert("¡Cuenta eliminada exitosamente!");
-    }
+  function getCSRFToken() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    return csrfToken ? csrfToken.value : '';
   }
 
-  // ==============================
-  // Función de búsqueda
-  // ==============================
+  function mostrarMensaje(mensaje, tipo = 'info') {
+    // Implementar sistema de notificaciones aquí
+    alert(`${tipo.toUpperCase()}: ${mensaje}`);
+  }
+
+  function toggleGrupo(grupoId) {
+    if (gruposExpandidos.has(grupoId)) {
+      gruposExpandidos.delete(grupoId);
+    } else {
+      gruposExpandidos.add(grupoId);
+    }
+    renderizarTabla();
+  }
+
+  function expandirTodo() {
+    Object.keys(estructuraCompleta).forEach(key => {
+      gruposExpandidos.add(key);
+    });
+    renderizarTabla();
+  }
+
+  function colapsarTodo() {
+    gruposExpandidos.clear();
+    ['1', '2', '3', '4', '5'].forEach(grupoId => {
+      gruposExpandidos.add(grupoId);
+    });
+    renderizarTabla();
+  }
+
   function buscarCuentas() {
     const busqueda = document.getElementById("buscar").value.toLowerCase();
     const filtro = document.getElementById("filtro-tipo").value.toLowerCase();
 
     let cuentasFiltradas = cuentas;
 
-    // Filtrar por búsqueda
     if (busqueda) {
       cuentasFiltradas = cuentasFiltradas.filter(
         (cuenta) =>
@@ -504,7 +926,6 @@ Cuentas{% endblock %} {% block content %}
       );
     }
 
-    // Filtrar por tipo
     if (filtro !== "todos") {
       cuentasFiltradas = cuentasFiltradas.filter(
         (cuenta) => cuenta.tipo.toLowerCase() === filtro
@@ -515,72 +936,27 @@ Cuentas{% endblock %} {% block content %}
   }
 
   // ==============================
-  // Inicialización
+  // INICIALIZACIÓN
   // ==============================
   document.addEventListener("DOMContentLoaded", function () {
-    // Botón Nueva Cuenta
-    document
-      .getElementById("btnNuevaCuenta")
-      .addEventListener("click", () => abrirModal(true));
+    cargarCuentas();
 
-    // Botones del modal
-    document
-      .getElementById("btnCerrarModal")
-      .addEventListener("click", cerrarModal);
-    document
-      .getElementById("btnCancelar")
-      .addEventListener("click", cerrarModal);
-    document
-      .getElementById("btnGuardarCuenta")
-      .addEventListener("click", guardarCuenta);
-
-    // Cerrar modal al hacer clic fuera
-    document
-      .getElementById("modalCuenta")
-      .addEventListener("click", function (e) {
-        if (e.target === this) {
-          cerrarModal();
-        }
-      });
-
-    // Búsqueda y filtros
+    // Event listeners
+    document.getElementById("btnNuevaCuenta").addEventListener("click", () => abrirModal(true));
+    document.getElementById("btnExpandirTodo").addEventListener("click", expandirTodo);
+    document.getElementById("btnColapsarTodo").addEventListener("click", colapsarTodo);
+    document.getElementById("btnCerrarModal").addEventListener("click", cerrarModal);
+    document.getElementById("btnCancelar").addEventListener("click", cerrarModal);
+    document.getElementById("btnGuardarCuenta").addEventListener("click", guardarCuenta);
+    document.getElementById("modalCuenta").addEventListener("click", function (e) {
+      if (e.target === this) cerrarModal();
+    });
     document.getElementById("buscar").addEventListener("input", buscarCuentas);
-    document
-      .getElementById("filtro-tipo")
-      .addEventListener("change", buscarCuentas);
-
-    // Renderizar tabla inicial
-    renderizarTabla();
+    document.getElementById("filtro-tipo").addEventListener("change", buscarCuentas);
+    
+    // ✅ NUEVO: Actualizar grupos cuando cambie el tipo
+    document.getElementById("tipo").addEventListener("change", actualizarGruposModal);
   });
 </script>
 
-{% endblock %}
-
-{% block scripts %}
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const buscarInput = document.getElementById("buscar");
-    const filtroSelect = document.getElementById("filtro-tipo");
-    const filas = document.querySelectorAll("#cuerpo-tabla tr");
-
-    function filtrar() {
-        const texto = buscarInput.value.toLowerCase();
-        const tipoSeleccionado = filtroSelect.value;
-
-        filas.forEach(fila => {
-            const codigo = fila.cells[0].textContent.toLowerCase();
-            const nombre = fila.cells[1].textContent.toLowerCase();
-            const tipo = fila.getAttribute("data-tipo");
-
-            const coincideTexto = codigo.includes(texto) || nombre.includes(texto);
-            const coincideTipo = tipoSeleccionado === "todos" || tipo === tipoSeleccionado;
-
-            fila.style.display = (coincideTexto && coincideTipo) ? "" : "none";
-        });
-    }
-
-    buscarInput.addEventListener("input", filtrar);
-    filtroSelect.addEventListener("change", filtrar);
-});
-</script>
 {% endblock %}

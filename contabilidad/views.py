@@ -3,11 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 import json
 from decimal import Decimal
 from .models import Cuenta, Asiento, Partida
 from django.utils import timezone
+from django.db import transaction
+
 
 # -------------------------
 # VISTA PRINCIPAL
@@ -39,7 +41,7 @@ def catalogo_cuentas(request):
     }
     return render(request, 'contabilidad/catalogo_cuentas.html', context)
     # Se recomienda usar snake_case en el nombre del template
-    return render(request, 'contabilidad/catalogoCuentas.html')
+   
 
 # -------------------------
 # Estados Financieros
@@ -114,46 +116,24 @@ def detalle_cuenta(request, pk):
 # -------------------------
 @login_required(login_url='/login/')
 def nueva_transaccion(request):
-    """Vista para crear nueva transacción (asiento contable)"""
-    cuentas = Cuenta.objects.filter(es_cuenta_detalle=True).order_by('codigo')
-    
-    # Obtener cuentas específicas para IVA
-    cuenta_iva_pagar = Cuenta.objects.filter(
-        nombre__icontains='iva', 
-        tipo='pasivo'
-    ).first()
-    
-    cuenta_iva_cobrar = Cuenta.objects.filter(
-        nombre__icontains='iva', 
-        tipo='activo'
-    ).first()
-    
-    # Si no existen, crearlas automáticamente
-    if not cuenta_iva_pagar:
-        cuenta_iva_pagar = Cuenta.objects.create(
-            codigo='2105',
-            nombre='IVA Por Pagar',
-            tipo='pasivo',
-            descripcion='Impuesto al Valor Agregado por pagar',
-            es_cuenta_detalle=True
-        )
-    
-    if not cuenta_iva_cobrar:
-        cuenta_iva_cobrar = Cuenta.objects.create(
-            codigo='1106',
-            nombre='IVA Por Cobrar',
-            tipo='activo',
-            descripcion='Impuesto al Valor Agregado por cobrar',
-            es_cuenta_detalle=True
-        )
-    
+    # Obtener cuentas de IVA si existen
+    try:
+        cuenta_iva_pagar = Cuenta.objects.get(nombre__icontains='iva debito')
+        cuenta_iva_pagar_id = cuenta_iva_pagar.id
+    except Cuenta.DoesNotExist:
+        cuenta_iva_pagar_id = None
+
+    try:
+        cuenta_iva_cobrar = Cuenta.objects.get(nombre__icontains='iva credito')
+        cuenta_iva_cobrar_id = cuenta_iva_cobrar.id
+    except Cuenta.DoesNotExist:
+        cuenta_iva_cobrar_id = None
+
     context = {
-        'cuentas': cuentas,
-        'fecha_actual': timezone.now().strftime('%Y-%m-%d'),
-        'cuenta_iva_pagar': cuenta_iva_pagar,
-        'cuenta_iva_cobrar': cuenta_iva_cobrar,
-        'cuenta_iva_pagar_id': cuenta_iva_pagar.id if cuenta_iva_pagar else None,
-        'cuenta_iva_cobrar_id': cuenta_iva_cobrar.id if cuenta_iva_cobrar else None,
+        'fecha_actual': timezone.now().date().isoformat(),
+        'cuentas': Cuenta.objects.filter(es_cuenta_detalle=True),
+        'cuenta_iva_pagar_id': cuenta_iva_pagar_id,
+        'cuenta_iva_cobrar_id': cuenta_iva_cobrar_id,
     }
     return render(request, 'contabilidad/nueva_transaccion.html', context)
 
@@ -168,9 +148,11 @@ def guardar_transaccion(request):
     try:
         data = json.loads(request.body)
         movimientos = data.get('movimientos', [])
-        descripcion_general = data.get('descripcion_general', '')
-        fecha = data.get('fecha', timezone.now().date())
+        descripcion_general = data.get('descripcion_general', '').strip()
+        fecha_str = data.get('fecha')
         
+        print(f"📥 Datos recibidos - Movimientos: {len(movimientos)}, Descripción: {descripcion_general}")
+
         # Validaciones básicas
         if not descripcion_general:
             return JsonResponse({
@@ -184,63 +166,150 @@ def guardar_transaccion(request):
                 'message': 'Debe haber al menos 2 movimientos (débito y crédito)'
             })
         
-        # Validar que el asiento esté balanceado
-        total_debe = sum(Decimal(mov['debe']) for mov in movimientos)
-        total_haber = sum(Decimal(mov['haber']) for mov in movimientos)
+        # Validar fecha
+        if fecha_str:
+            fecha = timezone.datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        else:
+            fecha = timezone.now().date()
         
-        if total_debe != total_haber:
+        # Validar que el asiento esté balanceado
+        total_debe = sum(Decimal(str(mov['debe'])) for mov in movimientos)
+        total_haber = sum(Decimal(str(mov['haber'])) for mov in movimientos)
+        
+        diferencia = abs(total_debe - total_haber)
+        if diferencia > Decimal('0.01'):  # Tolerancia para decimales
             return JsonResponse({
                 'success': False,
-                'message': f'El asiento no está balanceado. Débito: {total_debe}, Crédito: {total_haber}'
+                'message': f'El asiento no está balanceado. Débito: ${total_debe:.2f}, Crédito: ${total_haber:.2f}, Diferencia: ${diferencia:.2f}'
             })
         
         # Verificar si el asiento tiene IVA
         tiene_iva = any(mov.get('es_iva', False) for mov in movimientos)
         
-        # Crear el asiento
-        asiento = Asiento.objects.create(
-            fecha=fecha,
-            descripcion=descripcion_general,
-            creado_por=request.user,
-            tiene_iva=tiene_iva,
-            monto_total=total_debe + total_haber
-        )
-        
-        # Crear las partidas
-        for mov in movimientos:
-            cuenta = get_object_or_404(Cuenta, id=mov['cuenta_id'])
-            Partida.objects.create(
-                asiento=asiento,
-                cuenta=cuenta,
-                debe=mov['debe'],
-                haber=mov['haber'],
-                descripcion=mov['descripcion'],
-                es_iva=mov.get('es_iva', False),
-                monto_base=mov.get('monto_base', 0),
-                monto_iva=mov.get('monto_iva', 0)
+        # Usar transacción atómica para asegurar consistencia
+        with transaction.atomic():
+            # Crear el asiento
+            asiento = Asiento.objects.create(
+                fecha=fecha,
+                descripcion=descripcion_general,
+                creado_por=request.user,
+                tiene_iva=tiene_iva,
+                monto_total=total_debe  # Usar total_debe ya que debe = haber
             )
+            
+            # Crear las partidas
+            partidas_creadas = 0
+            for mov in movimientos:
+                try:
+                    cuenta = Cuenta.objects.get(id=mov['cuenta_id'])
+                    
+                    Partida.objects.create(
+                        asiento=asiento,
+                        cuenta=cuenta,
+                        debe=Decimal(str(mov['debe'])),
+                        haber=Decimal(str(mov['haber'])),
+                        descripcion=mov.get('descripcion', '')[:200],  # Limitar longitud
+                        es_iva=mov.get('es_iva', False),
+                        monto_base=Decimal(str(mov.get('monto_base', 0))),
+                        monto_iva=Decimal(str(mov.get('monto_iva', 0)))
+                    )
+                    partidas_creadas += 1
+                    
+                except Cuenta.DoesNotExist:
+                    # Continuar con otras partidas si una cuenta no existe
+                    continue
+                except Exception as e:
+                    # Log del error pero continuar
+                    print(f"Error creando partida: {e}")
+                    continue
+            
+            # Verificar que se crearon partidas
+            if partidas_creadas == 0:
+                raise Exception("No se pudo crear ninguna partida")
         
         return JsonResponse({
             'success': True,
-            'message': 'Transacción guardada exitosamente',
+            'message': f'Transacción #{asiento.id} guardada exitosamente',
             'asiento_id': asiento.id,
-            'tiene_iva': tiene_iva
+            'tiene_iva': tiene_iva,
+            'partidas_creadas': partidas_creadas
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error en el formato de los datos enviados'
         })
         
     except Exception as e:
+        print(f"❌ Error en guardar_transaccion: {str(e)}")
         return JsonResponse({
             'success': False,
             'message': f'Error al guardar la transacción: {str(e)}'
         })
 
+
 # -------------------------
-# LIBRO DIARIO
+# LIBRO MAYOR - CORREGIDA
 # -------------------------
 @login_required(login_url='/login/')
-def libro_diario(request):
-    """Vista para mostrar el libro diario"""
-    asientos = Asiento.objects.all().order_by('-fecha', '-id')[:50]  # Últimos 50 asientos
-    return render(request, 'contabilidad/libro_diario.html', {'asientos': asientos})
+def libro_mayor(request):
+    """Vista para mostrar el libro mayor"""
+    selected_cuenta = request.GET.get('cuenta', '')
+    
+    # Obtener todas las cuentas para el dropdown
+    todas_las_cuentas = Cuenta.objects.filter(es_cuenta_detalle=True).values_list('nombre', flat=True).distinct()
+    
+    cuentas_data = []
+    total_debe = 0
+    total_haber = 0
+    saldo_acumulado = 0
+    
+    if selected_cuenta:
+        try:
+            # Obtener la cuenta específica
+            cuenta_obj = Cuenta.objects.get(nombre=selected_cuenta)
+            
+            # Obtener todas las partidas de esta cuenta
+            partidas = Partida.objects.filter(cuenta=cuenta_obj).select_related('asiento').order_by('asiento__fecha', 'asiento__id')
+            
+            for partida in partidas:
+                debe = float(partida.debe)
+                haber = float(partida.haber)
+                
+                # Calcular saldo acumulado
+                if cuenta_obj.tipo in ['activo', 'gastos']:
+                    saldo_acumulado += debe - haber
+                else:  # pasivo, capital, ingresos
+                    saldo_acumulado += haber - debe
+                
+                cuentas_data.append({
+                    'fecha': partida.asiento.fecha,
+                    'numero': partida.asiento.id,
+                    'descripcion': partida.descripcion or partida.asiento.descripcion,
+                    'debe': debe,
+                    'haber': haber,
+                    'saldo': saldo_acumulado
+                })
+                
+                total_debe += debe
+                total_haber += haber
+                
+        except Cuenta.DoesNotExist:
+            # Si la cuenta no existe, mostrar mensaje
+            pass
+    
+    context = {
+        'selected_cuenta': selected_cuenta,
+        'todas_las_cuentas': todas_las_cuentas,
+        'cuentas': cuentas_data,
+        'totales': {
+            'total_debe': total_debe,
+            'total_haber': total_haber,
+            'total_saldo': saldo_acumulado
+        }
+    }
+    return render(request, 'contabilidad/libro_mayor.html', context)
 
 # -------------------------
 # DETALLE DE ASIENTO
@@ -261,3 +330,106 @@ def detalle_asiento(request, asiento_id):
 
 def planilla(request):
     return render(request, 'contabilidad/planilla.html')
+
+# -------------------------
+# API PARA CATÁLOGO DE CUENTAS
+# -------------------------
+@login_required(login_url='/login/')
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def api_cuentas(request):
+    """API para manejar cuentas contables"""
+    if request.method == 'GET':
+        # Obtener todas las cuentas
+        cuentas = list(Cuenta.objects.all().values('id', 'codigo', 'nombre', 'tipo', 'descripcion', 'grupo'))
+        return JsonResponse(cuentas, safe=False)
+    
+    elif request.method == 'POST':
+        # Crear nueva cuenta
+        try:
+            data = json.loads(request.body)
+            
+            # Validar que el código no exista
+            if Cuenta.objects.filter(codigo=data['codigo']).exists():
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Ya existe una cuenta con este código'
+                }, status=400)
+            
+            cuenta = Cuenta.objects.create(
+                codigo=data['codigo'],
+                nombre=data['nombre'],
+                tipo=data['tipo'].lower(),  # Convertir a minúsculas para coincidir con tu modelo
+                descripcion=data.get('descripcion', ''),
+                grupo=data.get('grupo', ''),
+                es_cuenta_detalle=True
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'id': cuenta.id,
+                'message': 'Cuenta creada exitosamente'
+            }, status=201)
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al crear la cuenta: {str(e)}'
+            }, status=400)
+
+@login_required(login_url='/login/')
+@csrf_exempt
+@require_http_methods(["PUT", "DELETE"])
+def api_cuenta_detalle(request, cuenta_id):
+    """API para editar y eliminar cuentas específicas"""
+    try:
+        cuenta = Cuenta.objects.get(id=cuenta_id)
+        
+        if request.method == 'PUT':
+            # Actualizar cuenta
+            data = json.loads(request.body)
+            
+            # Validar que el código no esté duplicado (excluyendo la cuenta actual)
+            if Cuenta.objects.filter(codigo=data['codigo']).exclude(id=cuenta_id).exists():
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Ya existe otra cuenta con este código'
+                }, status=400)
+            
+            cuenta.codigo = data['codigo']
+            cuenta.nombre = data['nombre']
+            cuenta.tipo = data['tipo'].lower()
+            cuenta.descripcion = data.get('descripcion', '')
+            cuenta.grupo = data.get('grupo', '')
+            cuenta.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Cuenta actualizada exitosamente'
+            })
+        
+        elif request.method == 'DELETE':
+            # Eliminar cuenta
+            # Verificar si la cuenta tiene movimientos
+            if cuenta.partidas.exists():
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No se puede eliminar la cuenta porque tiene movimientos asociados'
+                }, status=400)
+            
+            cuenta.delete()
+            return JsonResponse({
+                'success': True,
+                'message': 'Cuenta eliminada exitosamente'
+            })
+            
+    except Cuenta.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Cuenta no encontrada'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=400)

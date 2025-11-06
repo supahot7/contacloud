@@ -9,7 +9,7 @@ urlpatterns = [
     path('cuenta/<int:pk>/', views.detalle_cuenta, name='detalle_cuenta'),
     path('nueva-transaccion/', views.nueva_transaccion, name='nueva_transaccion'),
     path('guardar-transaccion/', views.guardar_transaccion, name='guardar_transaccion'),
-    path('libro-diario/', views.libro_diario, name='libro_diario'),
+    path('libro-mayor/', views.libro_mayor, name='libro_mayor'),
     path('asiento/<int:asiento_id>/', views.detalle_asiento, name='detalle_asiento'),
     path('estados/', views.estados_financieros, name='estadosFinancieros'), # Estados Financieros
     path('balance/', views.balance_general, name='balanceGeneral'), # Balance General
@@ -18,5 +18,7 @@ urlpatterns = [
     path('manoObra/', views.mano_obra, name='manoObra'), # Mano de obra
     path('inventario/', views.inventario_licencias, name='inventarioLicencias'), # Inventario de Licencias
     path('planilla/', views.planilla, name='planilla'), # Cálculo de Planilla
+    path('api/cuentas/', views.api_cuentas, name='api_cuentas'),
+    path('api/cuentas/<int:cuenta_id>/', views.api_cuenta_detalle, name='api_cuenta_detalle')
 ]
    

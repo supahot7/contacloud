@@ -20,26 +20,14 @@ class Cuenta(models.Model):
     descripcion = models.TextField(blank=True)
     cuenta_padre = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='hijas')
     es_cuenta_detalle = models.BooleanField(default=True)
-    acepta_iva = models.BooleanField(default=False)  # Nueva campo para cuentas que aceptan IVA
+    acepta_iva = models.BooleanField(default=False)
+    grupo = models.CharField(max_length=20, blank=True)  # NUEVO CAMPO
 
     class Meta:
         ordering = ['codigo']
 
     def __str__(self):
         return f"{self.codigo} - {self.nombre}"
-    
-    def get_absolute_url(self):
-        return reverse('contabilidad:detalle_cuenta', kwargs={'pk': self.pk})
-    
-    def get_saldo(self):
-        """Calcula el saldo de la cuenta"""
-        total_debe = self.partidas.aggregate(Sum('debe'))['debe__sum'] or 0
-        total_haber = self.partidas.aggregate(Sum('haber'))['haber__sum'] or 0
-        
-        if self.tipo in ['activo', 'gasto']:
-            return total_debe - total_haber
-        else:
-            return total_haber - total_debe
 
 class Asiento(models.Model):
     ESTADOS_ASIENTO = [

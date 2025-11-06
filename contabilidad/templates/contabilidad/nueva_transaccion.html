@@ -57,17 +57,14 @@
 {% endblock %}
 
 {% block content %}
-<<<<<<< HEAD
+<script>
+console.log('TEST desde inline');
+</script>
 <div class="container-fluid mt-3">
     <div class="transaction-header mb-4 mt-4">
         <h2><i class="bi bi-journal-plus"></i> Nueva Transacción</h2>
-        <p class="text-muted">Registre un nuevo asiento contable con soporte para IVA</p>
+        <p class="text-muted">Registre un nuevo asiento contable</p>
     </div>
-=======
-<div class="container-fluid fixed-align  mt-3">
-    <div class="transaction-header mb-4 mt-4 fw-bold">
-        <h2>Nueva transacción</h2>
->>>>>>> 0e34bfca800c2d933599b848313863fc9ee73836
 
     <div class="row g-4">
         <!-- Columna izquierda: formulario -->
@@ -175,8 +172,8 @@
                             <tr>
                                 <th>#</th>
                                 <th>Cuenta</th>
-                                <th class="text-end">Débito</th>
-                                <th class="text-end">Crédito</th>
+                                <th class="text-end">Debe</th>
+                                <th class="text-end">Haber</th>
                                 <th>Descripción</th>
                                 <th>IVA</th>
                                 <th>Acciones</th>
@@ -220,8 +217,8 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-circle"></i> Cerrar
                 </button>
-                <a href="{% url 'contabilidad:libro_diario' %}" class="btn btn-primary">
-                    <i class="bi bi-journal-text"></i> Ver Libro Diario
+                <a href="{% url 'contabilidad:libro_mayor' %}" class="btn btn-primary">
+                    <i class="bi bi-journal-text"></i> Ver Libro Mayor
                 </a>
                 <button type="button" class="btn btn-outline-primary" onclick="location.reload()">
                     <i class="bi bi-plus-circle"></i> Nueva Transacción
@@ -255,31 +252,44 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ JavaScript cargado - Iniciando configuración...');
+
+    // Elementos del DOM
     const addMovementBtn = document.getElementById('addMovementBtn');
     const guardarTransaccionBtn = document.getElementById('guardarTransaccionBtn');
     const movementsTableBody = document.querySelector('#movementsTable tbody');
     const ivaCheckbox = document.getElementById('iva');
     const ivaCalculoDiv = document.getElementById('iva-calculo');
+    const montoInputEl = document.getElementById('monto');
+    const cuentaSelect = document.getElementById('seleccionar-cuenta');
+    const tipoMovimientoSelect = document.getElementById('tipo-movimiento');
+    const descripcionInput = document.getElementById('descripcion');
+    const descripcionGeneralInput = document.getElementById('descripcion-general');
+    const fechaInput = document.getElementById('fecha');
+
+    // Variables de control
     let noMovementsRow = document.getElementById('no-movements-row');
     let movementCount = 0;
     let movimientos = [];
-    
-    // Cuentas de IVA (deben existir en tu base de datos)
-    const CUENTA_IVA_PAGAR = {% if cuenta_iva_pagar %}{{ cuenta_iva_pagar.id }}{% else %}null{% endif %}
-    const CUENTA_IVA_COBRAR = {% if cuenta_iva_cobrar %}{{ cuenta_iva_cobrar.id }}{% else %}null{% endif %}
 
-    // Actualizar cálculo de IVA en tiempo real
-    document.getElementById('monto').addEventListener('input', actualizarCalculoIVA);
-    ivaCheckbox.addEventListener('change', actualizarCalculoIVA);
+    // Cuentas IVA
+    const CUENTA_IVA_PAGAR = {% if cuenta_iva_pagar_id %}{{ cuenta_iva_pagar_id }}{% else %}null{% endif %};
+    const CUENTA_IVA_COBRAR = {% if cuenta_iva_cobrar_id %}{{ cuenta_iva_cobrar_id }}{% else %}null{% endif %};
+
+    console.log('🔧 Cuentas IVA:', CUENTA_IVA_PAGAR, CUENTA_IVA_COBRAR);
+
+    // Eventos para cálculo IVA en tiempo real
+    if (montoInputEl) montoInputEl.addEventListener('input', actualizarCalculoIVA);
+    if (ivaCheckbox) ivaCheckbox.addEventListener('change', actualizarCalculoIVA);
 
     function actualizarCalculoIVA() {
-        const montoBase = parseFloat(document.getElementById('monto').value) || 0;
+        const montoBase = parseFloat(montoInputEl.value) || 0;
         const aplicarIVA = ivaCheckbox.checked;
-        
+
         if (aplicarIVA && montoBase > 0) {
             const montoIVA = montoBase * 0.13;
             const montoTotal = montoBase + montoIVA;
-            
+
             document.getElementById('monto-base').textContent = montoBase.toFixed(2);
             document.getElementById('monto-iva').textContent = montoIVA.toFixed(2);
             document.getElementById('monto-total').textContent = montoTotal.toFixed(2);
@@ -292,84 +302,55 @@ document.addEventListener('DOMContentLoaded', function() {
     function actualizarTotales() {
         let totalDebe = 0;
         let totalHaber = 0;
-        
+
         movimientos.forEach(mov => {
-            totalDebe += parseFloat(mov.debe);
-            totalHaber += parseFloat(mov.haber);
+            totalDebe += parseFloat(mov.debe) || 0;
+            totalHaber += parseFloat(mov.haber) || 0;
         });
-        
+
         document.getElementById('total-debe').textContent = `$${totalDebe.toFixed(2)}`;
         document.getElementById('total-haber').textContent = `$${totalHaber.toFixed(2)}`;
-        
-        // Verificar balance
-        const estaBalanceado = totalDebe.toFixed(2) === totalHaber.toFixed(2);
+
+        const diferencia = Math.abs(totalDebe - totalHaber);
+        const estaBalanceado = diferencia < 0.01;
         const estadoBalance = document.getElementById('estado-balance');
-        
-        if (estaBalanceado) {
-            estadoBalance.textContent = 'Balanceado';
+
+        if (estaBalanceado && movimientos.length >= 2) {
+            estadoBalance.textContent = '✓ Balanceado';
             estadoBalance.className = 'balanceado';
             guardarTransaccionBtn.disabled = false;
         } else {
-            estadoBalance.textContent = 'Desbalanceado';
+            if (movimientos.length < 2) {
+                estadoBalance.textContent = 'Mínimo 2 movimientos';
+            } else {
+                estadoBalance.textContent = `⚠ Desbalanceado ($${diferencia.toFixed(2)})`;
+            }
             estadoBalance.className = 'desbalanceado';
             guardarTransaccionBtn.disabled = true;
         }
-        
-        // Habilitar botón de guardar si hay al menos 2 movimientos
-        guardarTransaccionBtn.disabled = guardarTransaccionBtn.disabled || movimientos.length < 2;
+
+        console.log(`💰 Totales - Debe: $${totalDebe.toFixed(2)}, Haber: $${totalHaber.toFixed(2)}`);
     }
 
     function calcularConIVA(montoBase, aplicarIVA) {
         if (aplicarIVA) {
-            return {
-                base: montoBase,
-                iva: montoBase * 0.13,
-                total: montoBase * 1.13
-            };
+            const iva = montoBase * 0.13;
+            return { base: montoBase, iva: iva, total: montoBase + iva };
         }
-        return {
-            base: montoBase,
-            iva: 0,
-            total: montoBase
-        };
-    }
-
-    function crearMovimientoIVA(montoBase, descripcionBase, esDebito) {
-        const montoIVA = montoBase * 0.13;
-        const cuentaIVA = esDebito ? CUENTA_IVA_PAGAR : CUENTA_IVA_COBRAR;
-        const nombreCuentaIVA = esDebito ? 'IVA Por Pagar' : 'IVA Por Cobrar';
-        
-        if (cuentaIVA) {
-            const movimientoIVA = {
-                id: Date.now() + 1,
-                cuenta_id: cuentaIVA,
-                cuenta_nombre: nombreCuentaIVA,
-                debe: esDebito ? '0.00' : montoIVA.toFixed(2),
-                haber: esDebito ? montoIVA.toFixed(2) : '0.00',
-                descripcion: `IVA - ${descripcionBase}`,
-                es_iva: true,
-                monto_base: montoBase,
-                monto_iva: montoIVA
-            };
-            agregarMovimientoATabla(movimientoIVA);
-            movimientos.push(movimientoIVA);
-            return true;
-        }
-        return false;
+        return { base: montoBase, iva: 0, total: montoBase };
     }
 
     function agregarMovimientoATabla(movimiento) {
-        if (noMovementsRow) {
+        console.log('➕ Agregando movimiento a tabla:', movimiento);
+        
+        if (noMovementsRow && noMovementsRow.parentNode) {
             noMovementsRow.remove();
             noMovementsRow = null;
         }
 
         movementCount++;
-
         const newRow = movementsTableBody.insertRow();
-        if (movimiento.es_iva) {
-            newRow.classList.add('movimiento-iva');
-        }
+        if (movimiento.es_iva) newRow.classList.add('movimiento-iva');
         newRow.setAttribute('data-movement-id', movimiento.id);
 
         const cellNum = newRow.insertCell(0);
@@ -382,211 +363,222 @@ document.addEventListener('DOMContentLoaded', function() {
 
         cellNum.textContent = movementCount;
         cellCuenta.textContent = movimiento.cuenta_nombre;
-        
-        cellDebe.textContent = movimiento.debe > 0 ? `$${parseFloat(movimiento.debe).toFixed(2)}` : '-';
+
+        const debeVal = parseFloat(movimiento.debe) || 0;
         cellDebe.className = 'text-end';
-        if (movimiento.debe > 0) cellDebe.classList.add('monto-debe');
-        
-        cellHaber.textContent = movimiento.haber > 0 ? `$${parseFloat(movimiento.haber).toFixed(2)}` : '-';
+        cellDebe.textContent = debeVal > 0 ? `$${debeVal.toFixed(2)}` : '-';
+        if (debeVal > 0) cellDebe.classList.add('monto-debe');
+
+        const haberVal = parseFloat(movimiento.haber) || 0;
         cellHaber.className = 'text-end';
-        if (movimiento.haber > 0) cellHaber.classList.add('monto-haber');
-        
+        cellHaber.textContent = haberVal > 0 ? `$${haberVal.toFixed(2)}` : '-';
+        if (haberVal > 0) cellHaber.classList.add('monto-haber');
+
         cellDescripcion.textContent = movimiento.descripcion || '—';
-        
-        // Columna IVA
+
+        cellIVA.className = 'text-center';
         if (movimiento.es_iva) {
             cellIVA.innerHTML = '<span class="iva-badge">IVA</span>';
-        } else if (movimiento.monto_iva > 0) {
+        } else if (movimiento.monto_iva && movimiento.monto_iva > 0) {
             cellIVA.innerHTML = `<small>+IVA<br>$${movimiento.monto_iva.toFixed(2)}</small>`;
         } else {
             cellIVA.innerHTML = '<small class="text-muted">-</small>';
         }
-        cellIVA.className = 'text-center';
 
-        // Botón eliminar
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'btn btn-sm btn-outline-danger';
         deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
         deleteBtn.title = 'Eliminar movimiento';
         deleteBtn.addEventListener('click', function() {
-            // Remover de la lista
-            movimientos = movimientos.filter(m => m.id !== movimiento.id);
-            newRow.remove();
-            
-            // Actualizar números consecutivos
-            const rows = movementsTableBody.querySelectorAll('tr');
-            rows.forEach((row, index) => {
-                if (row.cells[0]) {
-                    row.cells[0].textContent = index + 1;
-                }
-            });
-            
-            if (movementsTableBody.children.length === 0) {
-                const emptyRow = movementsTableBody.insertRow();
-                emptyRow.id = 'no-movements-row';
-                const emptyCell = emptyRow.insertCell(0);
-                emptyCell.colSpan = 7;
-                emptyCell.className = 'text-center text-muted py-4';
-                emptyCell.innerHTML = `
-                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                    <p class="mt-2">Aún no hay movimientos.</p>
-                    <small class="text-muted">Agregue al menos 2 movimientos para guardar</small>
-                `;
-                noMovementsRow = emptyRow;
-            }
-            
-            actualizarTotales();
+            eliminarMovimiento(movimiento.id, newRow);
         });
         cellOpciones.appendChild(deleteBtn);
     }
 
+    function eliminarMovimiento(id, row) {
+        console.log('🗑️ Eliminando movimiento id:', id);
+        
+        movimientos = movimientos.filter(m => m.id !== id);
+        row.remove();
+
+        const rows = movementsTableBody.querySelectorAll('tr');
+        movementCount = 0;
+        rows.forEach((r, idx) => {
+            movementCount++;
+            if (r.cells[0]) r.cells[0].textContent = idx + 1;
+        });
+
+        if (movimientos.length === 0) {
+            const emptyRow = movementsTableBody.insertRow();
+            emptyRow.id = 'no-movements-row';
+            const emptyCell = emptyRow.insertCell(0);
+            emptyCell.colSpan = 7;
+            emptyCell.className = 'text-center text-muted py-4';
+            emptyCell.innerHTML = `
+                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                <p class="mt-2">Aún no hay movimientos.</p>
+                <small class="text-muted">Agregue al menos 2 movimientos para guardar</small>
+            `;
+            noMovementsRow = emptyRow;
+            movementCount = 0;
+        }
+
+        actualizarTotales();
+    }
+
+    function crearMovimientoIVA(montoBase, descripcionBase, esDebito) {
+        const montoIVA = montoBase * 0.13;
+        const cuentaIVAId = esDebito ? CUENTA_IVA_PAGAR : CUENTA_IVA_COBRAR;
+        const nombreCuentaIVA = esDebito ? 'IVA Por Pagar' : 'IVA Crédito Fiscal';
+
+        console.log('📋 Creando movimiento IVA, cuenta:', cuentaIVAId);
+
+        if (!cuentaIVAId || cuentaIVAId === 'None' || cuentaIVAId === 'null') {
+            console.warn('⚠️ Cuenta de IVA no configurada');
+            mostrarError('No se encontró la cuenta de IVA. Configure una cuenta con "IVA" en el nombre.');
+            return null;
+        }
+
+        const movimientoIVA = {
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            cuenta_id: cuentaIVAId,
+            cuenta_nombre: nombreCuentaIVA,
+            debe: esDebito ? '0.00' : montoIVA.toFixed(2),
+            haber: esDebito ? montoIVA.toFixed(2) : '0.00',
+            descripcion: `IVA - ${descripcionBase}`,
+            es_iva: true,
+            monto_base: montoBase,
+            monto_iva: montoIVA
+        };
+
+        console.log('✅ Movimiento IVA creado:', movimientoIVA);
+        agregarMovimientoATabla(movimientoIVA);
+        movimientos.push(movimientoIVA);
+        return movimientoIVA;
+    }
+
+    // EVENTO: AÑADIR MOVIMIENTO
     addMovementBtn.addEventListener('click', function() {
-        const fechaInput = document.getElementById('fecha');
-        const cuentaSelect = document.getElementById('seleccionar-cuenta');
-        const tipoMovimientoSelect = document.getElementById('tipo-movimiento');
-        const montoInput = document.getElementById('monto');
-        const descripcionInput = document.getElementById('descripcion');
-        const ivaCheck = document.getElementById('iva');
-        const descripcionGeneral = document.getElementById('descripcion-general').value;
+        console.log('🖱️ Clic en Añadir Movimiento');
 
         const fecha = fechaInput.value;
-        const cuentaId = cuentaSelect.value;
-        const cuentaNombre = cuentaSelect.options[cuentaSelect.selectedIndex].text;
-        const tipoMovimiento = tipoMovimientoSelect.value;
-        let montoBase = parseFloat(montoInput.value);
-        const descripcion = descripcionInput.value.trim();
-        const aplicarIVA = ivaCheck.checked;
-        const esDebito = tipoMovimiento === 'debe';
+        const montoBase = parseFloat(montoInputEl.value);
+        const descripcionMov = descripcionInput.value.trim();
+        const descripcionGeneral = descripcionGeneralInput.value.trim();
+        const aplicarIVA = ivaCheckbox.checked;
+        const esDebito = tipoMovimientoSelect.value === 'debe';
 
-        // Validación de campos
         if (!fecha) {
             mostrarError('Por favor, selecciona una fecha.');
-            fechaInput.focus();
             return;
         }
-
-        if (!cuentaId) {
+        if (!cuentaSelect.value) {
             mostrarError('Por favor, selecciona una cuenta.');
-            cuentaSelect.focus();
             return;
         }
-
         if (isNaN(montoBase) || montoBase <= 0) {
             mostrarError('Por favor, ingresa un monto válido mayor que cero.');
-            montoInput.focus();
             return;
         }
 
-        // Calcular montos (con IVA si aplica)
         const montos = calcularConIVA(montoBase, aplicarIVA);
-        
-        // Crear movimiento principal
-        const movimiento = {
+
+        const movimientoPrincipal = {
             id: Date.now(),
-            cuenta_id: cuentaId,
-            cuenta_nombre: cuentaNombre,
+            cuenta_id: cuentaSelect.value,
+            cuenta_nombre: cuentaSelect.options[cuentaSelect.selectedIndex].text,
             debe: esDebito ? montos.total.toFixed(2) : '0.00',
             haber: esDebito ? '0.00' : montos.total.toFixed(2),
-            descripcion: descripcion || descripcionGeneral,
+            descripcion: descripcionMov || descripcionGeneral || 'Movimiento contable',
             es_iva: false,
             monto_base: montos.base,
             monto_iva: montos.iva
         };
 
-        // Agregar movimiento principal
-        agregarMovimientoATabla(movimiento);
-        movimientos.push(movimiento);
+        console.log('📝 Movimiento principal creado:', movimientoPrincipal);
+        agregarMovimientoATabla(movimientoPrincipal);
+        movimientos.push(movimientoPrincipal);
 
-        // Si aplica IVA, crear movimiento automático de IVA
         if (aplicarIVA && montos.iva > 0) {
-            const ivaCreado = crearMovimientoIVA(montoBase, descripcion || descripcionGeneral, esDebito);
-            if (!ivaCreado) {
-                mostrarError('No se encontró la cuenta de IVA configurada en el sistema.');
-            }
+            crearMovimientoIVA(montoBase, movimientoPrincipal.descripcion, esDebito);
         }
 
-        // Limpiar campos del formulario (excepto fecha y descripción general)
-        montoInput.value = '';
+        montoInputEl.value = '';
         cuentaSelect.selectedIndex = 0;
         tipoMovimientoSelect.selectedIndex = 0;
         descripcionInput.value = '';
-        ivaCheck.checked = false;
+        ivaCheckbox.checked = false;
         ivaCalculoDiv.style.display = 'none';
 
-        // Actualizar totales
         actualizarTotales();
+        console.log(`✅ Movimiento agregado. Total: ${movimientos.length}`);
     });
 
-    // Guardar transacción completa
-    guardarTransaccionBtn.addEventListener('click', function() {
-        const fecha = document.getElementById('fecha').value;
-        const descripcionGeneral = document.getElementById('descripcion-general').value;
+    // EVENTO: GUARDAR TRANSACCIÓN
+    guardarTransaccionBtn.addEventListener('click', async function() {
+        console.log('💾 Guardando transacción...');
+
+        const fecha = fechaInput.value;
+        const descripcionGeneral = descripcionGeneralInput.value.trim();
 
         if (!descripcionGeneral) {
             mostrarError('Por favor, ingresa una descripción general para el asiento.');
-            document.getElementById('descripcion-general').focus();
             return;
         }
-
         if (movimientos.length < 2) {
-            mostrarError('Debe haber al menos 2 movimientos para guardar la transacción.');
+            mostrarError('Debe haber al menos 2 movimientos para guardar el asiento.');
             return;
         }
 
-        // Mostrar loading
         guardarTransaccionBtn.disabled = true;
-        const originalText = guardarTransaccionBtn.innerHTML;
-        guardarTransaccionBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Guardando...';
+        const originalHTML = guardarTransaccionBtn.innerHTML;
+        guardarTransaccionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Guardando...';
 
-        // Enviar datos al servidor
-        fetch('{% url "contabilidad:guardar_transaccion" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({
-                fecha: fecha,
-                descripcion_general: descripcionGeneral,
-                movimientos: movimientos
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
+        try {
+            const response = await fetch('{% url "contabilidad:guardar_transaccion" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    fecha: fecha,
+                    descripcion_general: descripcionGeneral,
+                    movimientos: movimientos
+                })
+            });
+
+            const data = await response.json();
+            console.log('📬 Respuesta:', data);
+
             if (data.success) {
-                // Mostrar modal de éxito
-                document.getElementById('modal-message').textContent = data.message;
+                document.getElementById('modal-message').textContent = data.message || 'Transacción guardada.';
                 if (data.tiene_iva) {
                     document.getElementById('iva-info').style.display = 'block';
                 }
                 const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
                 modal.show();
             } else {
-                mostrarError(data.message);
+                mostrarError(data.message || 'Error al guardar.');
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            mostrarError('Error al guardar la transacción: ' + error.message);
-        })
-        .finally(() => {
+        } catch (err) {
+            console.error('❌ Error:', err);
+            mostrarError('Error al guardar: ' + err.message);
+        } finally {
             guardarTransaccionBtn.disabled = false;
-            guardarTransaccionBtn.innerHTML = originalText;
-        });
+            guardarTransaccionBtn.innerHTML = originalHTML;
+        }
     });
 
     function mostrarError(mensaje) {
+        console.error('⚠️ Error:', mensaje);
         document.getElementById('error-message').textContent = mensaje;
         const modal = new bootstrap.Modal(document.getElementById('errorModal'));
         modal.show();
     }
 
-    // Inicializar tooltips de Bootstrap
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
-    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+    console.log('✅ Sistema listo');
 });
 </script>
 {% endblock %}

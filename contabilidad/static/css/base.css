@@ -47,7 +47,7 @@ body {
         /* Navbar Superior (Contacloud, icono, Cerrar sesión) */
         .navbar-custom {
             display: flex;
-            position: fixed;
+            position: sticky;
             top: auto;
             align-items: center;
             background-color: #E6E6E7; /* Fondo blanco */
@@ -175,3 +175,4 @@ body {
     font-size: 1.4rem;
     color: #333;
 }
+

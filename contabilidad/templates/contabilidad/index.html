@@ -4,27 +4,90 @@
 {% block title %}Panel Principal - ContaCloud{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static '/css/index.css' %}">
-<div class="welcome-header">
-    <h2>Bienvenido Usuario</h2> <!--USUARIO SE REEMPLAZARA POR EL NOMBRE DEL USUARIO QUE ESTE UTILIZANDO EL SISTEMA-->
-    <p>¿Qué deseas hacer hoy?</p>
+<div class="container-fluid mt-3">
+    <div class="welcome-header mb-4">
+        <h2> Bienvenido, {{ user.username }}</h2>
+        <p>¿Qué deseas hacer hoy?</p>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center">
+        <div class="col">
+            <a href="{% url 'contabilidad:nueva_transaccion' %}" class="action-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-plus-circle" style="font-size: 2rem;"></i>
+                    <h5 class="card-title mt-2">Nueva transacción</h5>
+                    <p class="card-text">Registrar asiento contable</p>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a href="{% url 'contabilidad:catalogo_cuentas' %}" class="action-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-journal-bookmark" style="font-size: 2rem;"></i>
+                    <h5 class="card-title mt-2">Ver catálogo</h5>
+                    <p class="card-text">Gestionar plan de cuentas</p>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a href="#" class="action-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up" style="font-size: 2rem;"></i>
+                    <h5 class="card-title mt-2">Ver estados financieros</h5>
+                    <p class="card-text">Generar reportes y balances</p>
+                </div>
+            </a>
+        </div>
+    </div>
 </div>
 
-<div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center">
-    <div class="col">
-        <a href="#" class="action-card">
-            Nueva transacción
-        </a>
-    </div>
-    <div class="col">
-        <a href="#" class="action-card">
-            Ver catálogo
-        </a>
-    </div>
-    <div class="col">
-        <a href="#" class="action-card">
-            Ver estados financieros
-        </a>
-    </div>
-</div>
+<style>
+.action-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    background: white;
+    height: 100%;
+}
+
+.action-card:hover {
+    text-decoration: none;
+    color: inherit;
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-color: #007bff;
+}
+
+.action-card .card-body {
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.action-card .card-title {
+    color: #007bff;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+}
+
+.welcome-header h2 {
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.welcome-header p {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+</style>
 {% endblock %}

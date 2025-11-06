@@ -10,24 +10,55 @@
     <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.2.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
     <link rel="stylesheet" href="{% static '/css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/contabilidad/catalogoCuentas.css' %}">
+    
+    <!-- Bloque para CSS adicional de templates hijos -->
+    {% block extra_css %}
+    {% endblock %}
 </head>
 <body>
 
     <!-- Sidebar -->
     <nav id="sidebarMenu" class="sidebar">
         <div class="sidebar-header">
-            ContaCloud
+            <a class="nav-link sidebar-header, fs-3" href="{% url 'contabilidad:panel_principal' %}">
+    ContaCloud 
+    <i class="fi fi-sr-stats"></i>
+</a>
         </div>
         <div class="position-sticky pt-3">
-            <ul class="nav flex-column">
-                <li class="nav-item"><a class="nav-link active" href="{% url 'contabilidad:catalogo_cuentas' %}">Catálogo de cuentas</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Transacciones</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Estados financieros</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Contabilidad de Costos</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Libros contables</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Inventario</a></li>
-            </ul>
-        </div>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'catalogo_cuentas' %}active{% endif %}" 
+               href="{% url 'contabilidad:catalogo_cuentas' %}">
+                Catálogo de cuentas
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'nueva_transaccion' %}active{% endif %}" 
+               href="{% url 'contabilidad:nueva_transaccion' %}">
+                Transacciones
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'estadosFinancieros' %}active{% endif %}" 
+               href="{% url 'contabilidad:estadosFinancieros' %}">
+                Estados financieros
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">Contabilidad de Costos</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'libro_mayor' or request.resolver_match.url_name == 'libro_mayor' %}active{% endif %}" 
+               href="{% url 'contabilidad:libro_mayor' %}">
+                Libros contables
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">Inventario</a>
+        </li>
+    </ul>
+</div>
     </nav>
 
     <!-- Contenido principal -->
@@ -43,7 +74,7 @@
                 </a>
             </div>
             <div>
-                <a class="btn btn-logout" href="{% url 'usuarios:logout_view' %}">Cerrar sesión</a>
+                <a class="btn btn-logout" href="#">Cerrar sesión</a>
             </div>
         </nav>
 
@@ -59,11 +90,11 @@
         let sidebarPinned = false;
 
        // Mostrar sidebar temporal al pasar el mouse sobre el botón
-    toggleBtn.addEventListener('mouseenter', () => {
-        if (!sidebarPinned) {
-            sidebar.classList.add('show');
-        }
-    });
+        toggleBtn.addEventListener('mouseenter', () => {
+            if (!sidebarPinned) {
+                sidebar.classList.add('show');
+            }
+        });
 
         // Fijar o liberar sidebar al hacer clic en el botón
         toggleBtn.addEventListener('click', () => {
@@ -71,6 +102,9 @@
             sidebar.classList.toggle('show', sidebarPinned);
         });
     </script>
+    
+    <!-- Bloque para JavaScript adicional de templates hijos -->
+    {% block extra_js %}
+    {% endblock %}
 </body>
 </html>
-
