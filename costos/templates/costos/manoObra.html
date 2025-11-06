@@ -1,3 +1,348 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Contabilidad de Costos{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/contabilidad/manoObra.css' %}" />
+
+<!-- Mostrar mensajes -->
+{% if messages %}
+<div class="container mt-3">
+  {% for message in messages %}
+  <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="container py-4">
+  <!-- Header -->
+  <div class="header-section mb-4 text-center">
+    <h1 class="display-5">Contabilidad de Costos</h1>
+    <p class="lead">Administración de costos, mano de obra y cálculo de Tasa CIF</p>
+  </div>
+
+  <!-- Tabs de Navegación -->
+  <ul class="nav nav-tabs mb-4" id="costosTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link active"
+        id="mano-obra-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#mano-obra"
+        type="button"
+        style="color: black"
+      >
+        Mano de Obra
+      </button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="cif-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#cif"
+        type="button"
+        style="color: black"
+      >
+        Costos Indirectos
+      </button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="resumen-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#resumen"
+        type="button"
+        style="color: black"
+      >
+        Cálculo Tasa CIF
+      </button>
+    </li>
+  </ul>
+
+  <!-- Contenido de Tabs -->
+  <div class="tab-content" id="costosTabsContent">
+    <!-- TAB: MANO DE OBRA -->
+    <div class="tab-pane fade show active" id="mano-obra" role="tabpanel">
+      <div class="cost-card">
+        <div class="card-header-custom">
+          <h3>Registro de Mano de Obra</h3>
+        </div>
+
+        <!-- Formulario Mano de Obra -->
+       <form id="formManoObra" class="cost-form" method="POST" >
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Nombre del Trabajador</label>
+              <input type="text" class="form-control" name="nombre_trabajador" id="nombre_trabajador" placeholder="Ingrese nombre completo" required />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Cargo</label>
+              <input type="text" class="form-control" name="cargo" id="cargo" placeholder="Ej: Operario, Supervisor" required />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Costo Mensual</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" name="costo_mensual" id="costo_mensual" step="0.01" placeholder="0.00" required />
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Fecha</label>
+              <input type="date" class="form-control" name="fecha_mo" id="fecha_mo" required />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Tipo de Contrato</label>
+              <select class="form-control" name="tipo_contrato" id="tipo_contrato" required>
+                <option value="tiempo_completo">Tiempo Completo</option>
+                <option value="medio_tiempo">Medio Tiempo</option>
+                <option value="temporal">Temporal</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Observaciones</label>
+              <input type="text" class="form-control" name="observaciones_mo" id="observaciones_mo" placeholder="Tiempo completo/parcial" />
+            </div>
+
+            <div class="col-12">
+              <button type="submit" class="btn btn-success btn-lg w-100">
+                + Agregar Registro
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Tabla Mano de Obra -->
+        <div class="table-responsive mt-4">
+          <table class="table table-hover align-middle cost-table balance-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Cargo</th>
+                <th>Costo Mensual</th>
+                <th>Fecha</th>
+                <th>Observaciones</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaManoObra">
+              {% for registro in registros_mo %}
+              <tr>
+                <td>{{ registro.nombre_trabajador }}</td>
+                <td>{{ registro.cargo }}</td>
+                <td>${{ registro.costo_mensual }}</td>
+                <td>{{ registro.fecha_registro }}</td>
+                <td>{{ registro.observaciones|default:"-" }}</td>
+                <td>
+                 <form method="POST" action="{% url 'costos:eliminar_mano_obra' registro.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                onclick="return confirm('¿Estás seguro de que quieres eliminar a {{ registro.nombre_trabajador }}?')">
+                            Eliminar
+                        </button>
+                    </form>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="text-center text-muted">No hay registros aún</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="2"><strong>Total MOD</strong></td>
+                <td class="total-value" id="totalMOD">${{ total_mod|default:"0.00" }}</td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: COSTOS INDIRECTOS -->
+    <div class="tab-pane fade" id="cif" role="tabpanel">
+      <div class="cost-card">
+        <div class="card-header-custom">
+          <h3>Costos Indirectos de Fabricación (CIF)</h3>
+        </div>
+
+        <!-- Formulario CIF -->
+       <form id="formCIF" class="cost-form" method="POST" action="{% url 'costos:costosIndirectos' %}">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Concepto</label>
+              <input type="text" class="form-control" name="concepto" id="concepto" placeholder="Ej: Energía eléctrica" required />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Categoría</label>
+              <select name="categoria" id="categoria" class="form-control" required>
+                <option value="">Seleccione...</option>
+                <option value="servicios">Servicios</option>
+                <option value="mantenimiento">Mantenimiento</option>
+                <option value="depreciacion">Depreciación</option>
+                <option value="seguro">Seguros</option>
+                <option value="otros">Otros</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Monto</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" name="monto" id="monto" step="0.01" placeholder="0.00" required />
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Fecha</label>
+              <input type="date" class="form-control" name="fecha_cif" id="fecha_cif" required />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Descripción</label>
+              <input type="text" class="form-control" name="descripcion" id="descripcion" placeholder="Detalles adicionales" />
+            </div>
+
+            <div class="col-12">
+              <button type="submit" class="btn btn-success btn-lg w-100">
+                + Agregar CIF
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Tabla CIF -->
+        <div class="table-responsive mt-4">
+          <table class="table table-hover align-middle cost-table balance-table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Categoría</th>
+                <th>Monto</th>
+                <th>Fecha</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaCIF">
+              {% for registro in registros_cif %}
+              <tr>
+                <td>{{ registro.concepto }}</td>
+                <td>{{ registro.get_categoria_display }}</td>
+                <td>${{ registro.monto }}</td>
+                <td>{{ registro.fecha }}</td>
+                <td>{{ registro.descripcion|default:"-" }}</td>
+                <td>
+                  <form method="POST" action="{% url 'costos:eliminar_costo_indirecto' registro.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                onclick="return confirm('¿Estás seguro de que quieres eliminar el costo indirecto {{ registro.concepto }}?')">
+                            Eliminar
+                        </button>
+                    </form>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="text-center text-muted">No hay registros aún</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="2"><strong>Total CIF</strong></td>
+                <td class="total-value" id="totalCIF">${{ total_cif|default:"0.00" }}</td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: RESUMEN -->
+    <div class="tab-pane fade" id="resumen" role="tabpanel">
+      <div class="container text-center">
+        <h1 class="mb-4">Cálculo de Costos Totales</h1>
+
+        <div class="row g-4 justify-content-center">
+          <div class="col-md-3">
+            <div class="card card-blue">
+              <div class="card-label">Total CIF</div>
+              <div class="card-value" id="resumenCIF">${{ total_cif|default:"0.00" }}</div>
+              <div class="card-description">Costos Indirectos</div>
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="card card-green">
+              <div class="card-label">Total MOD</div>
+              <div class="card-value" id="resumenMOD">${{ total_mod|default:"0.00" }}</div>
+              <div class="card-description">Mano de Obra Directa</div>
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="card card-purple">
+              <div class="card-label">Tasa CIF</div>
+              <div class="card-value" id="tasaCIF">{{ tasa_cif|default:"0.00"|floatformat:2 }}%</div>
+              <div class="card-description">(CIF / MOD) × 100</div>
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="card card-gold">
+              <div class="card-label">Costo Total</div>
+              <div class="card-value" id="costoTotal">
+                ${{ total_cif|add:total_mod|floatformat:2 }}
+              </div>
+              <div class="card-description">CALCULADO</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <button class="btn btn-success btn-lg w-100" onclick="exportarPDF()">
+            📄 Exportar PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal personalizado -->
+<div id="customModal" class="custom-modal">
+  <div class="custom-modal-content">
+    <div class="custom-modal-icon" id="modalIcon"></div>
+    <h3 id="modalTitle"></h3>
+    <p id="modalMessage"></p>
+    <div class="custom-modal-buttons" id="modalButtons"></div>
+  </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="{% static 'js/contabilidad/manoObra.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
 // ==============================
 // Función para exportar PDF (Versión Mejorada y Formal)
 // ==============================
@@ -244,9 +589,7 @@ function exportarPDF() {
     }
 }
 
-// ==============================
 // Inicialización
-// ==============================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Sistema de PDF cargado correctamente');
     
@@ -255,3 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('fecha_mo') && (document.getElementById('fecha_mo').value = hoy);
     document.getElementById('fecha_cif') && (document.getElementById('fecha_cif').value = hoy);
 });
+</script>
+
+
+{% endblock %}

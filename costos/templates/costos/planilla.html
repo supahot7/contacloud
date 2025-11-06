@@ -1,6 +1,9 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Cálculo de
-Planilla{% endblock %} {% block content %}
+{% extends 'base.html' %} 
+{% load static %} 
 
+{% block title %}Cálculo de Planilla{% endblock %} 
+
+{% block content %}
 <link rel="stylesheet" href="{% static 'css/contabilidad/planilla.css' %}" />
 
 <div class="container py-4">
@@ -9,6 +12,18 @@ Planilla{% endblock %} {% block content %}
     <h1 class="display-5">Cálculo de Planilla</h1>
     <p class="lead">Sistema de cálculo de salarios y deducciones</p>
   </div>
+
+  <!-- Mensajes de Django -->
+  {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <!-- Contenedor principal -->
   <div class="row">
@@ -20,13 +35,16 @@ Planilla{% endblock %} {% block content %}
         </div>
 
         <div class="formulario-planilla">
-          <form id="formPlanilla">
+          <!-- CAMBIO IMPORTANTE: Agregar CSRF token y cambiar a form POST -->
+          <form id="formPlanilla" method="POST" action="{% url 'costos:planilla' %}">
+            {% csrf_token %}
+            
             <!-- Nombre del Empleado -->
             <div class="form-group">
-              <label for="nombre_empleado"
-                >Nombre del Empleado <span class="required">*</span></label
-              >
-              <select id="nombre_empleado" class="form-control" required>
+              <label for="nombre_empleado">
+                Nombre del Empleado <span class="required">*</span>
+              </label>
+              <select id="nombre_empleado" name="nombre_empleado" class="form-control" required>
                 <option value="">-- Seleccione un empleado --</option>
                 <option value="Juan Pérez">Juan Pérez</option>
                 <option value="María García">María García</option>
@@ -38,7 +56,7 @@ Planilla{% endblock %} {% block content %}
             <!-- Puesto -->
             <div class="form-group">
               <label for="puesto">Puesto <span class="required">*</span></label>
-              <select id="puesto" class="form-control" required>
+              <select id="puesto" name="puesto" class="form-control" required>
                 <option value="">-- Seleccione un puesto --</option>
                 <option value="Contador">Contador</option>
                 <option value="Operario">Operario</option>
@@ -48,18 +66,20 @@ Planilla{% endblock %} {% block content %}
               </select>
             </div>
 
-            <!-- Salario Nominal Semanal -->
+            <!-- Salario Nominal mensual -->
             <div class="form-group">
-              <label for="salario_nominal"
-                >Salario Nominal Semanal <span class="required">*</span></label
-              >
+              <label for="salario_nominal">
+                Salario Nominal Mensual <span class="required">*</span>
+              </label>
               <div class="input-group">
                 <span class="input-group-text">$</span>
                 <input
                   type="number"
                   id="salario_nominal"
+                  name="salario_nominal"
                   class="form-control"
                   step="0.01"
+                  min="0.01"
                   placeholder="20.00"
                   required
                 />
@@ -68,15 +88,17 @@ Planilla{% endblock %} {% block content %}
 
             <!-- Días trabajados -->
             <div class="form-group">
-              <label for="dias_trabajados"
-                >Días Trabajados <span class="required">*</span></label
-              >
+              <label for="dias_trabajados">
+                Días Trabajados <span class="required">*</span>
+              </label>
               <input
                 type="number"
                 id="dias_trabajados"
+                name="dias_trabajados"
                 class="form-control"
                 min="1"
                 max="31"
+                value="30"
                 placeholder="30"
                 required
               />
@@ -156,9 +178,7 @@ Planilla{% endblock %} {% block content %}
 
           <div class="resultado-item">
             <span class="resultado-label">Cálculo Salarial Cancelado</span>
-            <span class="resultado-value" id="res_salario_cancelado"
-              >$0.00</span
-            >
+            <span class="resultado-value" id="res_salario_cancelado">$0.00</span>
           </div>
 
           <div class="resultado-item destacado">
@@ -192,8 +212,10 @@ Planilla{% endblock %} {% block content %}
 
   <!-- Botones de acción -->
   <div class="text-center mt-4">
+    <!-- CAMBIO: Este botón ahora envía el formulario -->
     <button
-      type="button"
+      type="submit"
+      form="formPlanilla"
       class="btn btn-primary btn-lg"
       id="btnAgregarPlanilla"
     >
@@ -209,43 +231,60 @@ Planilla{% endblock %} {% block content %}
   </div>
 
   <!-- Tabla de Planilla Completa -->
-  <div
-    class="balance-table-container mt-4"
-    id="tablaPlanillaCompleta"
-    style="display: none"
-  >
+  <!-- CAMBIO: Mostrar tabla solo si hay registros -->
+  <div class="balance-table-container mt-4" id="tablaPlanillaCompleta" {% if not registros_planilla %}style="display: none"{% endif %}>
     <div class="table-responsive">
       <table class="table table-hover align-middle balance-table">
         <thead>
           <tr>
             <th>Nombre</th>
             <th>Puesto</th>
+            <th>Antigüedad</th>
             <th class="text-end">Salario Nominal</th>
+            <th class="text-end">Días Trabajados</th>
             <th class="text-end">Total Semanal</th>
             <th class="text-end">Total Mensual</th>
             <th class="text-center">Acciones</th>
           </tr>
         </thead>
         <tbody id="tbodyPlanilla">
-          <tr>
-            <td
-              colspan="6"
-              class="text-center text-muted"
-              style="padding: 2rem"
-            >
-              No hay empleados en la planilla. Calcula y agrega empleados para
-              comenzar.
-            </td>
-          </tr>
+          {% if registros_planilla %}
+            {% for registro in registros_planilla %}
+            <tr>
+              <td>{{ registro.get_nombre_display }}</td>
+              <td>{{ registro.get_puesto_display }}</td>
+              <td>{{ registro.get_antiguedad_display }}</td>
+              <td class="text-end">${{ registro.salario_nominal_mensual|floatformat:2 }}</td>
+              <td class="text-end">{{ registro.dias_trabajados }}</td>
+              <td class="text-end">${{ registro.salario_total_semanal|floatformat:2 }}</td>
+              <td class="text-end">${{ registro.salario_total_mensual|floatformat:2 }}</td>
+              <td class="text-center">
+                <!-- Form para eliminar registro -->
+                <form method="POST" action="{% url 'costos:eliminar_registro_planilla' registro.id %}" style="display: inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Está seguro de eliminar este registro?')">
+                    🗑️ Eliminar
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center text-muted" style="padding: 2rem">
+                No hay empleados en la planilla. Calcula y agrega empleados para comenzar.
+              </td>
+            </tr>
+          {% endif %}
         </tbody>
         <tfoot>
           <tr class="total-row">
-            <td colspan="3"><strong>TOTALES</strong></td>
+            <td colspan="5"><strong>TOTALES</strong></td>
             <td class="text-end total-value" id="total_semanal_planilla">
-              $0.00
+              ${{ total_semanal|floatformat:2 }}
             </td>
             <td class="text-end total-value" id="total_mensual_planilla">
-              $0.00
+              ${{ total_mensual|floatformat:2 }}
             </td>
             <td></td>
           </tr>
@@ -256,5 +295,4 @@ Planilla{% endblock %} {% block content %}
 </div>
 
 <script src="{% static 'js/planilla.js' %}"></script>
-
 {% endblock %}

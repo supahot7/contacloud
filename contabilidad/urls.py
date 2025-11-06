@@ -15,10 +15,10 @@ urlpatterns = [
     path('balance/', views.balance_general, name='balanceGeneral'), # Balance General
     path('estado/', views.estado_resultados, name='estadoResultados'), # Estado de Resultados
     path('estadoCapital/', views.estado_capital, name='estadoCapital'), # Estado de Capital
-    path('manoObra/', views.mano_obra, name='manoObra'), # Mano de obra
     path('inventario/', views.inventario_licencias, name='inventarioLicencias'), # Inventario de Licencias
     path('planilla/', views.planilla, name='planilla'), # Cálculo de Planilla
     path('api/cuentas/', views.api_cuentas, name='api_cuentas'),
     path('api/cuentas/<int:cuenta_id>/', views.api_cuenta_detalle, name='api_cuenta_detalle')
+   
 ]
    
