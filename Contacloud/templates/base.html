@@ -46,7 +46,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#">Contabilidad de Costos</a>
+            <a class="nav-link" href="{% url 'costos:manoObra' %}">Contabilidad de Costos</a>
         </li>
         <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'libro_mayor' or request.resolver_match.url_name == 'libro_mayor' %}active{% endif %}" 
@@ -74,7 +74,7 @@
                 </a>
             </div>
             <div>
-                <a class="btn btn-logout" href="#">Cerrar sesión</a>
+                <a class="btn btn-logout" href="{% url 'usuarios:logout_view' %}">Cerrar sesión</a>
             </div>
         </nav>
 
