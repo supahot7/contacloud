@@ -18,7 +18,11 @@ urlpatterns = [
     path('inventario/', views.inventario_licencias, name='inventarioLicencias'), # Inventario de Licencias
     path('planilla/', views.planilla, name='planilla'), # Cálculo de Planilla
     path('api/cuentas/', views.api_cuentas, name='api_cuentas'),
-    path('api/cuentas/<int:cuenta_id>/', views.api_cuenta_detalle, name='api_cuenta_detalle')
+    path('api/cuentas/<int:cuenta_id>/', views.api_cuenta_detalle, name='api_cuenta_detalle'),
+    path('api/licencias/', views.api_licencias, name='api_licencias'),
+    path('api/licencias/<int:licencia_id>/agregar-stock/', views.api_licencia_agregar_stock, name='api_licencia_agregar_stock'),
+    path('api/licencias/<int:licencia_id>/', views.api_licencia_detalle, name='api_licencia_detalle'),
+    path('api/licencias/dashboard/', views.api_licencias_dashboard, name='api_licencias_dashboard'),
    
 ]
    

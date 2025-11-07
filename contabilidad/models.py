@@ -92,3 +92,77 @@ class Partida(models.Model):
     def monto_total(self):
         """Retorna el monto total (base + IVA)"""
         return self.monto_base + self.monto_iva
+    
+# models.py - Actualizar el modelo Licencia
+class Licencia(models.Model):
+    ESTADOS_LICENCIA = [
+        ('disponible', 'Disponible'),
+        ('vendida', 'Vendida'),
+        ('inactiva', 'Inactiva'),
+    ]
+    
+    codigo = models.CharField(max_length=50, unique=True)
+    nombre = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
+    fecha_adquisicion = models.DateField(default=timezone.now)
+    costo_unitario = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    cantidad_disponible = models.IntegerField(default=0)
+    cantidad_total = models.IntegerField(default=0)
+    estado = models.CharField(max_length=20, choices=ESTADOS_LICENCIA, default='disponible')
+    valor_total_inventario_db = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        default=0.00,
+        verbose_name="Valor Total Inventario"
+    )
+    creado_por = models.ForeignKey(Usuario, on_delete=models.PROTECT, null=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-creado_en']
+    
+    def __str__(self):
+        return f"{self.codigo} - {self.nombre}"
+    
+    def save(self, *args, **kwargs):
+        """Sobrescribir save para calcular automáticamente el valor total"""
+        # Calcular el valor total antes de guardar
+        self.valor_total_inventario_db = self.cantidad_disponible * self.costo_unitario
+        super().save(*args, **kwargs)
+    
+    def vender_licencia(self, cantidad=1):
+        """Método para vender licencias y actualizar el inventario"""
+        if cantidad <= 0:
+            raise ValidationError("La cantidad debe ser mayor a 0")
+        
+        if self.cantidad_disponible < cantidad:
+            raise ValidationError(f"No hay suficientes licencias disponibles. Disponibles: {self.cantidad_disponible}")
+        
+        self.cantidad_disponible -= cantidad
+        # El valor_total_inventario_db se actualizará automáticamente en save()
+        self.save()
+        
+        # Si no hay más licencias disponibles, cambiar estado
+        if self.cantidad_disponible == 0:
+            self.estado = 'vendida'
+            self.save()
+    
+    def agregar_licencias(self, cantidad):
+        """Método para agregar más licencias al inventario"""
+        if cantidad <= 0:
+            raise ValidationError("La cantidad debe ser mayor a 0")
+        
+        self.cantidad_disponible += cantidad
+        self.cantidad_total += cantidad
+        
+        # Si había estado como vendida, cambiar a disponible
+        if self.estado == 'vendida':
+            self.estado = 'disponible'
+        
+        # El valor_total_inventario_db se actualizará automáticamente en save()
+        self.save()
+    
+    @property
+    def valor_total_inventario(self):
+        """Propiedad para obtener el valor total (solo lectura)"""
+        return self.valor_total_inventario_db

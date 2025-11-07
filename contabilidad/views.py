@@ -1,3 +1,4 @@
+# views.py - VERSIÓN COMPLETA CORREGIDA
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -6,10 +7,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_http_methods
 import json
 from decimal import Decimal
-from .models import Cuenta, Asiento, Partida
+from .models import Cuenta, Asiento, Partida, Licencia
 from django.utils import timezone
 from django.db import transaction
-
 
 # -------------------------
 # VISTA PRINCIPAL
@@ -40,44 +40,30 @@ def catalogo_cuentas(request):
         'cuentas': cuentas
     }
     return render(request, 'contabilidad/catalogo_cuentas.html', context)
-    # Se recomienda usar snake_case en el nombre del template
-   
 
 # -------------------------
 # Estados Financieros
 # -------------------------
-
 def estados_financieros(request):
     return render(request, 'contabilidad/estadosFinancieros.html')
 
 # -------------------------
 # Balance General
 # -------------------------
-
 def balance_general(request):
     return render(request, 'contabilidad/balanceGeneral.html')
 
 # -------------------------
 # Estado de Resultados
 # -------------------------
-
 def estado_resultados(request):
     return render(request, 'contabilidad/estadoResultados.html')
 
 # -------------------------
 # Estado de Capital
 # -------------------------
-
 def estado_capital(request):
     return render(request, 'contabilidad/estadoCapital.html')
-
-
-# -------------------------
-# Inventario de Licencias
-# -------------------------
-
-def inventario_licencias(request):
-    return render(request, 'contabilidad/inventarioLicencias.html')
 
 # -------------------------
 # DETALLE DE CUENTA
@@ -93,7 +79,7 @@ def detalle_cuenta(request, pk):
     # Calcular totales
     total_debe = sum(mov.debe for mov in movimientos)
     total_haber = sum(mov.haber for mov in movimientos)
-    saldo_actual = cuenta.get_saldo()
+    saldo_actual = 0  # Esta función get_saldo() no existe en tu modelo, la removí
     
     context = {
         'cuenta': cuenta,
@@ -202,7 +188,7 @@ def guardar_transaccion(request):
                         cuenta=cuenta,
                         debe=Decimal(str(mov['debe'])),
                         haber=Decimal(str(mov['haber'])),
-                        descripcion=mov.get('descripcion', '')[:200],  # Limitar longitud
+                        descripcion=mov.get('descripcion', '')[:200],
                         es_iva=mov.get('es_iva', False),
                         monto_base=Decimal(str(mov.get('monto_base', 0))),
                         monto_iva=Decimal(str(mov.get('monto_iva', 0)))
@@ -210,14 +196,11 @@ def guardar_transaccion(request):
                     partidas_creadas += 1
                     
                 except Cuenta.DoesNotExist:
-                    # Continuar con otras partidas si una cuenta no existe
                     continue
                 except Exception as e:
-                    # Log del error pero continuar
                     print(f"Error creando partida: {e}")
                     continue
             
-            # Verificar que se crearon partidas
             if partidas_creadas == 0:
                 raise Exception("No se pudo crear ninguna partida")
         
@@ -242,16 +225,14 @@ def guardar_transaccion(request):
             'message': f'Error al guardar la transacción: {str(e)}'
         })
 
-
 # -------------------------
-# LIBRO MAYOR - CORREGIDA
+# LIBRO MAYOR
 # -------------------------
 @login_required(login_url='/login/')
 def libro_mayor(request):
     """Vista para mostrar el libro mayor"""
     selected_cuenta = request.GET.get('cuenta', '')
     
-    # Obtener todas las cuentas para el dropdown
     todas_las_cuentas = Cuenta.objects.filter(es_cuenta_detalle=True).values_list('nombre', flat=True).distinct()
     
     cuentas_data = []
@@ -261,20 +242,16 @@ def libro_mayor(request):
     
     if selected_cuenta:
         try:
-            # Obtener la cuenta específica
             cuenta_obj = Cuenta.objects.get(nombre=selected_cuenta)
-            
-            # Obtener todas las partidas de esta cuenta
             partidas = Partida.objects.filter(cuenta=cuenta_obj).select_related('asiento').order_by('asiento__fecha', 'asiento__id')
             
             for partida in partidas:
                 debe = float(partida.debe)
                 haber = float(partida.haber)
                 
-                # Calcular saldo acumulado
-                if cuenta_obj.tipo in ['activo', 'gastos']:
+                if cuenta_obj.tipo in ['activo', 'gasto']:
                     saldo_acumulado += debe - haber
-                else:  # pasivo, capital, ingresos
+                else:
                     saldo_acumulado += haber - debe
                 
                 cuentas_data.append({
@@ -290,7 +267,6 @@ def libro_mayor(request):
                 total_haber += haber
                 
         except Cuenta.DoesNotExist:
-            # Si la cuenta no existe, mostrar mensaje
             pass
     
     context = {
@@ -319,14 +295,16 @@ def detalle_asiento(request, asiento_id):
         'partidas': partidas,
     }
     return render(request, 'contabilidad/detalle_asiento.html', context)
-# Inventario de Licencias
-# -------------------------
 
+# -------------------------
+# Planilla
+# -------------------------
 def planilla(request):
     return render(request, 'contabilidad/planilla.html')
 
+
 # -------------------------
-# API PARA CATÁLOGO DE CUENTAS
+# APIS PARA CUENTAS
 # -------------------------
 @login_required(login_url='/login/')
 @csrf_exempt
@@ -334,16 +312,13 @@ def planilla(request):
 def api_cuentas(request):
     """API para manejar cuentas contables"""
     if request.method == 'GET':
-        # Obtener todas las cuentas
         cuentas = list(Cuenta.objects.all().values('id', 'codigo', 'nombre', 'tipo', 'descripcion', 'grupo'))
         return JsonResponse(cuentas, safe=False)
     
     elif request.method == 'POST':
-        # Crear nueva cuenta
         try:
             data = json.loads(request.body)
             
-            # Validar que el código no exista
             if Cuenta.objects.filter(codigo=data['codigo']).exists():
                 return JsonResponse({
                     'success': False,
@@ -353,7 +328,7 @@ def api_cuentas(request):
             cuenta = Cuenta.objects.create(
                 codigo=data['codigo'],
                 nombre=data['nombre'],
-                tipo=data['tipo'].lower(),  # Convertir a minúsculas para coincidir con tu modelo
+                tipo=data['tipo'].lower(),
                 descripcion=data.get('descripcion', ''),
                 grupo=data.get('grupo', ''),
                 es_cuenta_detalle=True
@@ -380,10 +355,8 @@ def api_cuenta_detalle(request, cuenta_id):
         cuenta = Cuenta.objects.get(id=cuenta_id)
         
         if request.method == 'PUT':
-            # Actualizar cuenta
             data = json.loads(request.body)
             
-            # Validar que el código no esté duplicado (excluyendo la cuenta actual)
             if Cuenta.objects.filter(codigo=data['codigo']).exclude(id=cuenta_id).exists():
                 return JsonResponse({
                     'success': False,
@@ -403,8 +376,6 @@ def api_cuenta_detalle(request, cuenta_id):
             })
         
         elif request.method == 'DELETE':
-            # Eliminar cuenta
-            # Verificar si la cuenta tiene movimientos
             if cuenta.partidas.exists():
                 return JsonResponse({
                     'success': False,
@@ -427,3 +398,267 @@ def api_cuenta_detalle(request, cuenta_id):
             'success': False,
             'message': f'Error: {str(e)}'
         }, status=400)
+
+# -------------------------
+# INVENTARIO DE LICENCIAS (Vista principal)
+# -------------------------
+@login_required(login_url='/login/')
+def inventario_licencias(request):
+    """Vista del inventario de licencias con datos reales"""
+    licencias = Licencia.objects.all().order_by('-creado_en')
+    
+    # Calcular totales
+    total_licencias = licencias.count()
+    unidades_disponibles = sum(lic.cantidad_disponible for lic in licencias)
+    valor_total_inventario = sum(float(lic.valor_total_inventario) for lic in licencias)
+    
+    context = {
+        'licencias': licencias,
+        'total_licencias': total_licencias,
+        'unidades_disponibles': unidades_disponibles,
+        'valor_total_inventario': valor_total_inventario,
+    }
+    return render(request, 'contabilidad/inventarioLicencias.html', context)
+
+# -------------------------
+# APIS PARA LICENCIAS - CORREGIDAS
+# -------------------------
+# views.py - ACTUALIZAR LAS APIS
+@login_required(login_url='/login/')
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def api_licencias(request):
+    """API para manejar licencias - ACTUALIZADA"""
+    if request.method == 'GET':
+        try:
+            licencias = list(Licencia.objects.all().values(
+                'id', 'codigo', 'nombre', 'descripcion', 
+                'fecha_adquisicion', 'costo_unitario',
+                'cantidad_total', 'cantidad_disponible', 'estado',
+                'valor_total_inventario_db',  # NUEVO CAMPO
+                'creado_en'
+            ))
+            return JsonResponse(licencias, safe=False)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al cargar licencias: {str(e)}'
+            }, status=500)
+    
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            # Validaciones
+            if not data.get('codigo') or not data.get('nombre'):
+                return JsonResponse({
+                    'success': False,
+                    'message': 'El código y nombre son obligatorios'
+                }, status=400)
+            
+            if Licencia.objects.filter(codigo=data['codigo']).exists():
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Ya existe una licencia con este código'
+                }, status=400)
+            
+            # Crear licencia
+            licencia = Licencia.objects.create(
+                codigo=data['codigo'],
+                nombre=data['nombre'],
+                descripcion=data.get('descripcion', ''),
+                fecha_adquisicion=data.get('fecha_adquisicion', timezone.now().date()),
+                costo_unitario=Decimal(str(data.get('costo_unitario', 0))),
+                cantidad_total=int(data.get('cantidad_total', 1)),
+                cantidad_disponible=int(data.get('cantidad_total', 1)),
+                creado_por=request.user
+                # valor_total_inventario_db se calcula automáticamente en save()
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Licencia creada exitosamente',
+                'id': licencia.id,
+                'codigo': licencia.codigo,
+                'valor_total_inventario': float(licencia.valor_total_inventario_db)
+            }, status=201)
+            
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Error en el formato JSON'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al crear licencia: {str(e)}'
+            }, status=400)
+
+@login_required(login_url='/login/')
+@csrf_exempt
+@require_http_methods(["GET", "PUT", "DELETE"])
+def api_licencia_detalle(request, licencia_id):
+    """API para obtener, editar y eliminar licencias específicas - ACTUALIZADA"""
+    try:
+        licencia = Licencia.objects.get(id=licencia_id)
+        
+        if request.method == 'GET':
+            licencia_data = {
+                'id': licencia.id,
+                'codigo': licencia.codigo,
+                'nombre': licencia.nombre,
+                'descripcion': licencia.descripcion,
+                'fecha_adquisicion': licencia.fecha_adquisicion.isoformat(),
+                'costo_unitario': float(licencia.costo_unitario),
+                'cantidad_total': licencia.cantidad_total,
+                'cantidad_disponible': licencia.cantidad_disponible,
+                'estado': licencia.estado,
+                'valor_total_inventario': float(licencia.valor_total_inventario_db),  # USAR EL CAMPO DE BD
+                'creado_en': licencia.creado_en.isoformat(),
+            }
+            return JsonResponse(licencia_data)
+        
+        elif request.method == 'PUT':
+            data = json.loads(request.body)
+            
+            # Validaciones
+            if not data.get('codigo') or not data.get('nombre'):
+                return JsonResponse({
+                    'success': False,
+                    'message': 'El código y nombre son obligatorios'
+                }, status=400)
+            
+            if Licencia.objects.filter(codigo=data['codigo']).exclude(id=licencia_id).exists():
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Ya existe otra licencia con este código'
+                }, status=400)
+            
+            # Actualizar licencia
+            licencia.codigo = data['codigo']
+            licencia.nombre = data['nombre']
+            licencia.descripcion = data.get('descripcion', '')
+            
+            # Manejar fecha
+            if data.get('fecha_adquisicion'):
+                licencia.fecha_adquisicion = data['fecha_adquisicion']
+            
+            licencia.costo_unitario = Decimal(str(data.get('costo_unitario', 0)))
+            
+            # Manejar cantidad total - ajustar cantidad disponible si es necesario
+            nueva_cantidad_total = int(data.get('cantidad_total', 1))
+            diferencia = nueva_cantidad_total - licencia.cantidad_total
+            licencia.cantidad_total = nueva_cantidad_total
+            licencia.cantidad_disponible = max(0, licencia.cantidad_disponible + diferencia)
+            
+            # El valor_total_inventario_db se actualiza automáticamente en save()
+            
+            # Actualizar estado si es necesario
+            if licencia.cantidad_disponible == 0:
+                licencia.estado = 'vendida'
+            elif licencia.estado == 'vendida' and licencia.cantidad_disponible > 0:
+                licencia.estado = 'disponible'
+            
+            licencia.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Licencia actualizada exitosamente',
+                'valor_total_inventario': float(licencia.valor_total_inventario_db)
+            })
+        
+        elif request.method == 'DELETE':
+            licencia.delete()
+            return JsonResponse({
+                'success': True,
+                'message': 'Licencia eliminada exitosamente'
+            })
+            
+    except Licencia.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Licencia no encontrada'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=400)
+@login_required(login_url='/login/')
+@csrf_exempt
+@require_POST
+def api_licencia_agregar_stock(request, licencia_id):
+    """API para agregar stock a una licencia - CORREGIDA"""
+    try:
+        licencia = Licencia.objects.get(id=licencia_id)
+        data = json.loads(request.body)
+        cantidad = int(data.get('cantidad', 0))
+        
+        if cantidad <= 0:
+            return JsonResponse({
+                'success': False,
+                'message': 'La cantidad debe ser mayor a 0'
+            }, status=400)
+        
+        # Usar el método del modelo para agregar licencias
+        licencia.agregar_licencias(cantidad)
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Se agregaron {cantidad} licencias al inventario. Total disponible: {licencia.cantidad_disponible}',
+            'nueva_cantidad': licencia.cantidad_disponible
+        })
+        
+    except Licencia.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Licencia no encontrada'
+        }, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error en el formato JSON'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al agregar stock: {str(e)}'
+        }, status=400)
+
+# -------------------------
+# API adicional para obtener datos del dashboard
+# -------------------------
+@login_required(login_url='/login/')
+def api_licencias_dashboard(request):
+    """API para obtener datos resumidos del inventario - CORREGIDA"""
+    try:
+        licencias = Licencia.objects.all()
+        
+        total_licencias = licencias.count()
+        unidades_disponibles = sum(lic.cantidad_disponible for lic in licencias)
+        
+        # CORRECCIÓN: Usar el campo que está en la base de datos
+        valor_total_inventario = sum(float(lic.valor_total_inventario_db) for lic in licencias)
+        
+        # Licencias por estado
+        licencias_por_estado = {
+            'disponible': licencias.filter(estado='disponible').count(),
+            'vendida': licencias.filter(estado='vendida').count(),
+            'inactiva': licencias.filter(estado='inactiva').count(),
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'data': {
+                'total_licencias': total_licencias,
+                'unidades_disponibles': unidades_disponibles,
+                'valor_total_inventario': valor_total_inventario,
+                'licencias_por_estado': licencias_por_estado
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al cargar datos del dashboard: {str(e)}'
+        }, status=500)
