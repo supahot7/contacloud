@@ -1,9 +1,8 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Inventario de
-Licencias - ContaCloud{% endblock %} {% block content %}
-<link
-  rel="stylesheet"
-  href="{% static 'css/contabilidad/inventarioLicencias.css' %}"
-/>
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Inventario de Licencias - ContaCloud{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/contabilidad/inventarioLicencias.css' %}" />
 
 <div class="container py-4">
   <!-- Encabezado -->
@@ -34,9 +33,7 @@ Licencias - ContaCloud{% endblock %} {% block content %}
   <section class="search-section" aria-label="Búsqueda y acciones">
     <div class="search-wrapper">
       <div class="search-input-group">
-        <label for="buscar" class="search-label"
-          ><strong>Buscar por:</strong></label
-        >
+        <label for="buscar" class="search-label"><strong>Buscar por:</strong></label>
         <input
           type="text"
           id="buscar"
@@ -67,39 +64,25 @@ Licencias - ContaCloud{% endblock %} {% block content %}
             <th scope="col">Código</th>
             <th scope="col">Nombre</th>
             <th scope="col">Descripción</th>
-            <th scope="col">Fecha</th>
+            <th scope="col">Fecha Adquisición</th>
+            <th scope="col">Cantidad Total</th>
             <th scope="col">Cantidad Disponible</th>
-            <th scope="col">Precio Unitario</th>
-            <th scope="col">Valor Total</th>
+            <th scope="col">Costo Unitario</th>
+            <th scope="col">Valor Total Inventario</th>
+            <th scope="col">Estado</th>
             <th scope="col">Acciones</th>
           </tr>
         </thead>
         <tbody id="tableLicencias">
           <tr>
-            <td
-              colspan="8"
-              style="text-align: center; padding: 2rem; color: #6c757d"
-            >
-              No hay licencias registradas. Haz clic en "Nueva Licencia" para
-              agregar una.
+            <td colspan="10" style="text-align: center; padding: 2rem; color: #6c757d">
+              Cargando licencias...
             </td>
           </tr>
         </tbody>
       </table>
     </div>
   </section>
-
-  <!-- Botón de guardar -->
-  <footer class="footer-actions text-center">
-    <button
-      type="button"
-      class="btn-primary btn-save"
-      id="btnGuardar"
-      aria-label="Guardar cambios"
-    >
-      Guardar
-    </button>
-  </footer>
 </div>
 
 <!-- Modal para agregar/editar licencia -->
@@ -113,9 +96,11 @@ Licencias - ContaCloud{% endblock %} {% block content %}
     </div>
     <div class="modal-body">
       <form id="formLicencia">
+        <input type="hidden" id="licenciaId" value="">
+        
         <div class="form-group">
-          <label for="codigo">Código</label>
-          <input type="text" id="codigo" class="form-control" readonly />
+          <label for="codigo">Código <span class="required">*</span></label>
+          <input type="text" id="codigo" class="form-control" required />
         </div>
 
         <div class="form-group">
@@ -140,32 +125,16 @@ Licencias - ContaCloud{% endblock %} {% block content %}
         </div>
 
         <div class="form-group">
-          <label for="fecha">Fecha</label>
-          <input type="date" id="fecha" class="form-control" required />
+          <label for="fecha_adquisicion">Fecha Adquisición <span class="required">*</span></label>
+          <input type="date" id="fecha_adquisicion" class="form-control" required />
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="cantidad"
-              >Cantidad Disponible <span class="required">*</span></label
-            >
+            <label for="costo_unitario">Costo Unitario ($) <span class="required">*</span></label>
             <input
               type="number"
-              id="cantidad"
-              class="form-control"
-              min="0"
-              value="0"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="precio"
-              >Precio Unitario <span class="required">*</span></label
-            >
-            <input
-              type="number"
-              id="precio"
+              id="costo_unitario"
               class="form-control"
               min="0"
               step="0.01"
@@ -173,10 +142,22 @@ Licencias - ContaCloud{% endblock %} {% block content %}
               required
             />
           </div>
+
+          <div class="form-group">
+            <label for="cantidad_total">Cantidad Total <span class="required">*</span></label>
+            <input
+              type="number"
+              id="cantidad_total"
+              class="form-control"
+              min="1"
+              value="1"
+              required
+            />
+          </div>
         </div>
 
         <div class="form-group">
-          <label for="valorTotal">Valor Total</label>
+          <label for="valorTotal">Valor Total Inventario</label>
           <input type="text" id="valorTotal" class="form-control" readonly />
         </div>
       </form>
@@ -187,6 +168,45 @@ Licencias - ContaCloud{% endblock %} {% block content %}
       </button>
       <button type="button" class="btn-primary" id="btnGuardarLicencia">
         Guardar Licencia
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para agregar stock -->
+<div id="modalAgregarStock" class="modal-overlay" style="display: none">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Agregar Stock</h2>
+      <button type="button" class="modal-close" id="btnCerrarModalStock">
+        &times;
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="formAgregarStock">
+        <input type="hidden" id="licenciaStockId" value="">
+        <div class="form-group">
+          <label for="cantidad_agregar">Cantidad a agregar <span class="required">*</span></label>
+          <input
+            type="number"
+            id="cantidad_agregar"
+            class="form-control"
+            min="1"
+            value="1"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <p id="infoLicencia"></p>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" id="btnCancelarStock">
+        Cancelar
+      </button>
+      <button type="button" class="btn-primary" id="btnAgregarStock">
+        Agregar Stock
       </button>
     </div>
   </div>
@@ -292,11 +312,6 @@ Licencias - ContaCloud{% endblock %} {% block content %}
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 128, 0.25);
   }
 
-  .form-control:read-only {
-    background-color: #e9ecef;
-    cursor: not-allowed;
-  }
-
   .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -325,6 +340,29 @@ Licencias - ContaCloud{% endblock %} {% block content %}
     background-color: #5a6268;
   }
 
+  .btn-action {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin: 0 2px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+
+  .btn-edit:hover {
+    background-color: #e9ecef;
+  }
+
+  .btn-delete:hover {
+    background-color: #f8d7da;
+  }
+
+  .btn-stock:hover {
+    background-color: #d1ecf1;
+  }
+
   @media (max-width: 768px) {
     .modal-container {
       width: 95%;
@@ -341,8 +379,113 @@ Licencias - ContaCloud{% endblock %} {% block content %}
   // Variables globales
   // ==============================
   let licencias = [];
-  let contadorCodigo = 1;
-  let indiceEdicion = -1;
+  let licenciaEditando = null;
+
+  // ==============================
+  // Funciones para API
+  // ==============================
+  async function cargarLicencias() {
+    try {
+      const response = await fetch('/contabilidad/api/licencias/');
+      if (!response.ok) throw new Error('Error al cargar licencias');
+      
+      licencias = await response.json();
+      renderizarTabla();
+      calcularTotales();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al cargar las licencias: ' + error.message);
+    }
+  }
+
+  async function guardarLicencia(licenciaData) {
+    const url = licenciaData.id 
+      ? `/contabilidad/api/licencias/${licenciaData.id}/`
+      : '/contabilidad/api/licencias/';
+    
+    const method = licenciaData.id ? 'PUT' : 'POST';
+
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(licenciaData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al guardar la licencia');
+      }
+
+      return await response.json();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async function eliminarLicencia(id) {
+    try {
+      const response = await fetch(`/contabilidad/api/licencias/${id}/`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRFToken': getCSRFToken()
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al eliminar la licencia');
+      }
+
+      return await response.json();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async function agregarStock(id, cantidad) {
+    try {
+      const response = await fetch(`/contabilidad/api/licencias/${id}/agregar-stock/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ cantidad: cantidad })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al agregar stock');
+      }
+
+      return await response.json();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // ==============================
+  // Función para obtener CSRF token
+  // ==============================
+  function getCSRFToken() {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
 
   // ==============================
   // Función para calcular totales
@@ -350,20 +493,17 @@ Licencias - ContaCloud{% endblock %} {% block content %}
   function calcularTotales() {
     const totalLicencias = licencias.length;
     const unidadesDisponibles = licencias.reduce(
-      (sum, lic) => sum + parseInt(lic.cantidad),
+      (sum, lic) => sum + parseInt(lic.cantidad_disponible),
       0
     );
     const valorTotal = licencias.reduce(
-      (sum, lic) => sum + parseFloat(lic.valorTotal),
+      (sum, lic) => sum + (parseFloat(lic.costo_unitario) * parseInt(lic.cantidad_disponible)),
       0
     );
 
     document.getElementById("totalLicencias").textContent = totalLicencias;
-    document.getElementById("unidadesDisponibles").textContent =
-      unidadesDisponibles;
-    document.getElementById("valorTotal").textContent = `$${valorTotal.toFixed(
-      2
-    )}`;
+    document.getElementById("unidadesDisponibles").textContent = unidadesDisponibles;
+    document.getElementById("valorTotal").textContent = `$${valorTotal.toFixed(2)}`;
   }
 
   // ==============================
@@ -374,184 +514,280 @@ Licencias - ContaCloud{% endblock %} {% block content %}
 
     if (licencias.length === 0) {
       tbody.innerHTML = `
-      <tr>
-        <td colspan="8" style="text-align: center; padding: 2rem; color: #6c757d;">
-          No hay licencias registradas. Haz clic en "Nueva Licencia" para agregar una.
-        </td>
-      </tr>
-    `;
+        <tr>
+          <td colspan="10" style="text-align: center; padding: 2rem; color: #6c757d;">
+            No hay licencias registradas. Haz clic en "Nueva Licencia" para agregar una.
+          </td>
+        </tr>
+      `;
       return;
     }
 
     tbody.innerHTML = licencias
-      .map(
-        (licencia, index) => `
-    <tr>
-      <td data-label="Código">${licencia.codigo}</td>
-      <td data-label="Nombre">${licencia.nombre}</td>
-      <td data-label="Descripción">${licencia.descripcion}</td>
-      <td data-label="Fecha">${licencia.fecha}</td>
-      <td data-label="Cantidad Disponible">${licencia.cantidad}</td>
-      <td data-label="Precio Unitario">$${parseFloat(licencia.precio).toFixed(
-        2
-      )}</td>
-      <td data-label="Valor Total">$${parseFloat(licencia.valorTotal).toFixed(
-        2
-      )}</td>
-      <td data-label="Acciones" class="actions-cell">
-        <div class="action-buttons">
-          <button
-            type="button"
-            class="btn-action btn-edit"
-            onclick="editarLicencia(${index})"
-            title="Editar"
-          >
-            ✏️
-          </button>
-          <button
-            type="button"
-            class="btn-action btn-delete"
-            onclick="eliminarLicencia(${index})"
-            title="Eliminar"
-          >
-            🗑️
-          </button>
-        </div>
-      </td>
-    </tr>
-  `
-      )
-      .join("");
-  }
+      .map((licencia) => `
+        <tr>
+          <td data-label="Código">${licencia.codigo}</td>
+          <td data-label="Nombre">${licencia.nombre}</td>
+          <td data-label="Descripción">${licencia.descripcion || 'Sin descripción'}</td>
+          <td data-label="Fecha Adquisición">${new Date(licencia.fecha_adquisicion).toLocaleDateString('es-ES')}</td>
+          <td data-label="Cantidad Total">${licencia.cantidad_total}</td>
+          <td data-label="Cantidad Disponible">${licencia.cantidad_disponible}</td>
+          <td data-label="Costo Unitario">$${parseFloat(licencia.costo_unitario).toFixed(2)}</td>
+          <td data-label="Valor Total Inventario">$${parseFloat(licencia.valor_total_inventario_db || 0).toFixed(2)}</td>
+          <td data-label="Estado">
+            <span class="badge ${licencia.estado === 'disponible' ? 'badge-success' : licencia.estado === 'vendida' ? 'badge-danger' : 'badge-secondary'}">
+              ${licencia.estado}
+            </span>
+          </td>
+          <td data-label="Acciones" class="actions-cell">
+            <div class="action-buttons">
+              <button
+                type="button"
+                class="btn-action btn-edit"
+                onclick="editarLicencia(${licencia.id})"
+                title="Editar"
+              >
+                ✏️
+              </button>
+              <button
+                type="button"
+                class="btn-action btn-stock"
+                onclick="abrirModalAgregarStock(${licencia.id})"
+                title="Agregar Stock"
+              >
+                📦
+              </button>
+              <button
+                type="button"
+                class="btn-action btn-delete"
+                onclick="eliminarLicenciaConfirm(${licencia.id})"
+                title="Eliminar"
+              >
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+  }// ==============================
+// Función para calcular totales - ACTUALIZADA
+// ==============================
+function calcularTotales() {
+    const totalLicencias = licencias.length;
+    const unidadesDisponibles = licencias.reduce(
+        (sum, lic) => sum + parseInt(lic.cantidad_disponible),
+        0
+    );
+    
+    // USAR EL VALOR DE LA BASE DE DATOS
+    const valorTotal = licencias.reduce(
+        (sum, lic) => sum + parseFloat(lic.valor_total_inventario_db || 0),
+        0
+    );
+
+    document.getElementById("totalLicencias").textContent = totalLicencias;
+    document.getElementById("unidadesDisponibles").textContent = unidadesDisponibles;
+    document.getElementById("valorTotal").textContent = `$${valorTotal.toFixed(2)}`;
+}
+// ==============================
+// Función para renderizar la tabla - ACTUALIZADA
+// ==============================
+function renderizarTabla() {
+    const tbody = document.getElementById("tableLicencias");
+
+    if (licencias.length === 0) {
+        tbody.innerHTML = `
+        <tr>
+          <td colspan="10" style="text-align: center; padding: 2rem; color: #6c757d;">
+            No hay licencias registradas. Haz clic en "Nueva Licencia" para agregar una.
+          </td>
+        </tr>
+      `;
+        return;
+    }
+
+    tbody.innerHTML = licencias
+        .map((licencia) => `
+        <tr>
+          <td data-label="Código">${licencia.codigo}</td>
+          <td data-label="Nombre">${licencia.nombre}</td>
+          <td data-label="Descripción">${licencia.descripcion || 'Sin descripción'}</td>
+          <td data-label="Fecha Adquisición">${new Date(licencia.fecha_adquisicion).toLocaleDateString('es-ES')}</td>
+          <td data-label="Cantidad Total">${licencia.cantidad_total}</td>
+          <td data-label="Cantidad Disponible">${licencia.cantidad_disponible}</td>
+          <td data-label="Costo Unitario">$${parseFloat(licencia.costo_unitario).toFixed(2)}</td>
+          <td data-label="Valor Total Inventario">$${parseFloat(licencia.valor_total_inventario_db || 0).toFixed(2)}</td>
+          <td data-label="Estado">
+            <span class="badge ${licencia.estado === 'disponible' ? 'badge-success' : licencia.estado === 'vendida' ? 'badge-danger' : 'badge-secondary'}">
+              ${licencia.estado}
+            </span>
+          </td>
+          <td data-label="Acciones" class="actions-cell">
+            <div class="action-buttons">
+              <button
+                type="button"
+                class="btn-action btn-edit"
+                onclick="editarLicencia(${licencia.id})"
+                title="Editar"
+              >
+                ✏️
+              </button>
+              <button
+                type="button"
+                class="btn-action btn-stock"
+                onclick="abrirModalAgregarStock(${licencia.id})"
+                title="Agregar Stock"
+              >
+                📦
+              </button>
+              <button
+                type="button"
+                class="btn-action btn-delete"
+                onclick="eliminarLicenciaConfirm(${licencia.id})"
+                title="Eliminar"
+              >
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+}
 
   // ==============================
-  // Función para abrir el modal
+  // Funciones para el modal de licencia
   // ==============================
-  function abrirModal(esNuevo = true, index = -1) {
+  function abrirModal(licencia = null) {
     const modal = document.getElementById("modalLicencia");
     const titulo = document.getElementById("modalTitulo");
     const form = document.getElementById("formLicencia");
 
-    indiceEdicion = index;
+    licenciaEditando = licencia;
 
-    if (esNuevo) {
-      titulo.textContent = "Nueva Licencia";
-      form.reset();
-      document.getElementById("codigo").value = `LIC-${String(
-        contadorCodigo
-      ).padStart(3, "0")}`;
-      document.getElementById("fecha").valueAsDate = new Date();
-      document.getElementById("valorTotal").value = "$0.00";
-    } else {
+    if (licencia) {
       titulo.textContent = "Editar Licencia";
-      const licencia = licencias[index];
+      document.getElementById("licenciaId").value = licencia.id;
       document.getElementById("codigo").value = licencia.codigo;
       document.getElementById("nombre").value = licencia.nombre;
-      document.getElementById("descripcion").value = licencia.descripcion;
-      document.getElementById("fecha").value = licencia.fechaInput;
-      document.getElementById("cantidad").value = licencia.cantidad;
-      document.getElementById("precio").value = licencia.precio;
-      document.getElementById(
-        "valorTotal"
-      ).value = `$${licencia.valorTotal.toFixed(2)}`;
+      document.getElementById("descripcion").value = licencia.descripcion || '';
+      document.getElementById("fecha_adquisicion").value = licencia.fecha_adquisicion;
+      document.getElementById("costo_unitario").value = parseFloat(licencia.costo_unitario).toFixed(2);
+      document.getElementById("cantidad_total").value = licencia.cantidad_total;
+      calcularValorTotalModal();
+    } else {
+      titulo.textContent = "Nueva Licencia";
+      form.reset();
+      document.getElementById("fecha_adquisicion").valueAsDate = new Date();
+      document.getElementById("valorTotal").value = "$0.00";
     }
 
     modal.style.display = "flex";
   }
 
-  // ==============================
-  // Función para cerrar el modal
-  // ==============================
   function cerrarModal() {
     document.getElementById("modalLicencia").style.display = "none";
     document.getElementById("formLicencia").reset();
-    indiceEdicion = -1;
+    licenciaEditando = null;
   }
 
-  // ==============================
-  // Función para calcular valor total en el modal
-  // ==============================
   function calcularValorTotalModal() {
-    const cantidad = parseFloat(document.getElementById("cantidad").value) || 0;
-    const precio = parseFloat(document.getElementById("precio").value) || 0;
+    const cantidad = parseInt(document.getElementById("cantidad_total").value) || 0;
+    const precio = parseFloat(document.getElementById("costo_unitario").value) || 0;
     const valorTotal = cantidad * precio;
     document.getElementById("valorTotal").value = `$${valorTotal.toFixed(2)}`;
   }
 
-  // ==============================
-  // Función para guardar licencia
-  // ==============================
-  function guardarLicencia() {
-    const codigo = document.getElementById("codigo").value;
-    const nombre = document.getElementById("nombre").value.trim();
-    const descripcion =
-      document.getElementById("descripcion").value.trim() || "Sin descripción";
-    const fechaInput = document.getElementById("fecha").value;
-    const cantidad = parseInt(document.getElementById("cantidad").value) || 0;
-    const precio = parseFloat(document.getElementById("precio").value) || 0;
+  async function guardarLicenciaModal() {
+    const form = document.getElementById("formLicencia");
+    const licenciaId = document.getElementById("licenciaId").value;
 
-    if (!nombre) {
-      alert("El nombre de la licencia es obligatorio.");
+    if (!form.checkValidity()) {
+      form.reportValidity();
       return;
     }
 
-    if (!fechaInput) {
-      alert("La fecha es obligatoria.");
-      return;
-    }
-
-    const fecha = new Date(fechaInput + "T00:00:00").toLocaleDateString(
-      "es-ES"
-    );
-    const valorTotal = cantidad * precio;
-
-    const licencia = {
-      codigo,
-      nombre,
-      descripcion,
-      fecha,
-      fechaInput,
-      cantidad,
-      precio,
-      valorTotal,
+    const licenciaData = {
+      codigo: document.getElementById("codigo").value.trim(),
+      nombre: document.getElementById("nombre").value.trim(),
+      descripcion: document.getElementById("descripcion").value.trim(),
+      fecha_adquisicion: document.getElementById("fecha_adquisicion").value,
+      costo_unitario: parseFloat(document.getElementById("costo_unitario").value),
+      cantidad_total: parseInt(document.getElementById("cantidad_total").value)
     };
 
-    if (indiceEdicion >= 0) {
-      licencias[indiceEdicion] = licencia;
-      alert("¡Licencia actualizada exitosamente!");
-    } else {
-      licencias.push(licencia);
-      contadorCodigo++;
-      alert("¡Licencia agregada exitosamente!");
+    if (licenciaId) {
+      licenciaData.id = parseInt(licenciaId);
     }
 
-    renderizarTabla();
-    calcularTotales();
-    cerrarModal();
+    try {
+      const result = await guardarLicencia(licenciaData);
+      alert(result.message || '¡Licencia guardada exitosamente!');
+      await cargarLicencias();
+      cerrarModal();
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  }
+
+  async function editarLicencia(id) {
+    const licencia = licencias.find(l => l.id === id);
+    if (licencia) {
+      abrirModal(licencia);
+    }
   }
 
   // ==============================
-  // Función para editar licencia
+  // Funciones para el modal de agregar stock
   // ==============================
-  function editarLicencia(index) {
-    abrirModal(false, index);
+  function abrirModalAgregarStock(id) {
+    const licencia = licencias.find(l => l.id === id);
+    if (licencia) {
+      document.getElementById("licenciaStockId").value = licencia.id;
+      document.getElementById("infoLicencia").textContent = 
+        `Agregar stock a: ${licencia.nombre} (Código: ${licencia.codigo})`;
+      document.getElementById("modalAgregarStock").style.display = "flex";
+    }
+  }
+
+  function cerrarModalAgregarStock() {
+    document.getElementById("modalAgregarStock").style.display = "none";
+    document.getElementById("formAgregarStock").reset();
+  }
+
+  async function agregarStockModal() {
+    const licenciaId = document.getElementById("licenciaStockId").value;
+    const cantidad = parseInt(document.getElementById("cantidad_agregar").value);
+
+    if (!cantidad || cantidad <= 0) {
+      alert('La cantidad debe ser mayor a 0');
+      return;
+    }
+
+    try {
+      const result = await agregarStock(licenciaId, cantidad);
+      alert(result.message || '¡Stock agregado exitosamente!');
+      await cargarLicencias();
+      cerrarModalAgregarStock();
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
   }
 
   // ==============================
-  // Función para eliminar licencia
+  // Funciones de eliminación
   // ==============================
-  function eliminarLicencia(index) {
-    const licencia = licencias[index];
+  async function eliminarLicenciaConfirm(id) {
+    const licencia = licencias.find(l => l.id === id);
+    if (!licencia) return;
 
-    if (
-      confirm(
-        `¿Está seguro que desea eliminar la licencia "${licencia.nombre}"?`
-      )
-    ) {
-      licencias.splice(index, 1);
-      renderizarTabla();
-      calcularTotales();
-      alert("¡Licencia eliminada exitosamente!");
+    if (confirm(`¿Está seguro que desea eliminar la licencia "${licencia.nombre}"?`)) {
+      try {
+        const result = await eliminarLicencia(id);
+        alert(result.message || '¡Licencia eliminada exitosamente!');
+        await cargarLicencias();
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
     }
   }
 
@@ -573,67 +809,39 @@ Licencias - ContaCloud{% endblock %} {% block content %}
   }
 
   // ==============================
-  // Función para guardar cambios
-  // ==============================
-  function guardarCambios() {
-    if (licencias.length === 0) {
-      alert("No hay licencias para guardar.");
-      return;
-    }
-
-    console.log("Licencias a guardar:", licencias);
-    alert("¡Cambios guardados exitosamente!");
-  }
-
-  // ==============================
   // Inicialización
   // ==============================
   document.addEventListener("DOMContentLoaded", function () {
+    // Cargar licencias al iniciar
+    cargarLicencias();
+
     // Botón Nueva Licencia
-    document
-      .getElementById("btnNuevaLicencia")
-      .addEventListener("click", () => abrirModal(true));
+    document.getElementById("btnNuevaLicencia").addEventListener("click", () => abrirModal());
 
-    // Botones del modal
-    document
-      .getElementById("btnCerrarModal")
-      .addEventListener("click", cerrarModal);
-    document
-      .getElementById("btnCancelar")
-      .addEventListener("click", cerrarModal);
-    document
-      .getElementById("btnGuardarLicencia")
-      .addEventListener("click", guardarLicencia);
+    // Botones del modal de licencia
+    document.getElementById("btnCerrarModal").addEventListener("click", cerrarModal);
+    document.getElementById("btnCancelar").addEventListener("click", cerrarModal);
+    document.getElementById("btnGuardarLicencia").addEventListener("click", guardarLicenciaModal);
 
-    // Cerrar modal al hacer clic fuera
-    document
-      .getElementById("modalLicencia")
-      .addEventListener("click", function (e) {
-        if (e.target === this) {
-          cerrarModal();
-        }
-      });
+    // Botones del modal de stock
+    document.getElementById("btnCerrarModalStock").addEventListener("click", cerrarModalAgregarStock);
+    document.getElementById("btnCancelarStock").addEventListener("click", cerrarModalAgregarStock);
+    document.getElementById("btnAgregarStock").addEventListener("click", agregarStockModal);
+
+    // Cerrar modales al hacer clic fuera
+    document.getElementById("modalLicencia").addEventListener("click", function (e) {
+      if (e.target === this) cerrarModal();
+    });
+    document.getElementById("modalAgregarStock").addEventListener("click", function (e) {
+      if (e.target === this) cerrarModalAgregarStock();
+    });
 
     // Calcular valor total automáticamente
-    document
-      .getElementById("cantidad")
-      .addEventListener("input", calcularValorTotalModal);
-    document
-      .getElementById("precio")
-      .addEventListener("input", calcularValorTotalModal);
-
-    // Botón Guardar
-    document
-      .getElementById("btnGuardar")
-      .addEventListener("click", guardarCambios);
+    document.getElementById("cantidad_total").addEventListener("input", calcularValorTotalModal);
+    document.getElementById("costo_unitario").addEventListener("input", calcularValorTotalModal);
 
     // Input de búsqueda
-    document
-      .getElementById("buscar")
-      .addEventListener("input", buscarLicencias);
-
-    // Inicializar totales
-    calcularTotales();
+    document.getElementById("buscar").addEventListener("input", buscarLicencias);
   });
 </script>
 
