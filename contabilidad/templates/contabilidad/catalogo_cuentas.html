@@ -21,11 +21,14 @@
           class="form-control"
           placeholder="Buscar cuenta o código"
         />
+        <button class="btn btn-outline-secondary" id="btnLimpiarBusqueda" type="button" title="Limpiar búsqueda">
+          ✕
+        </button>
       </div>
     </div>
     <div class="col-md-3">
       <select id="filtro-tipo" class="form-select">
-        <option value="todos">Todos</option>
+        <option value="todos">Todos los tipos</option>
         <option value="activo">Activo</option>
         <option value="pasivo">Pasivo</option>
         <option value="capital">Capital</option>
@@ -40,10 +43,10 @@
     </div>
     <div class="col-md-3">
       <div class="btn-group w-100">
-        <button class="btn btn-outline-secondary" id="btnExpandirTodo">
+        <button class="btn btn-outline-secondary" id="btnExpandirTodo" style="display: none;">
           Expandir Todo
         </button>
-        <button class="btn btn-outline-secondary" id="btnColapsarTodo">
+        <button class="btn btn-outline-secondary" id="btnColapsarTodo" style="display: none;">
           Colapsar Todo
         </button>
       </div>
@@ -269,30 +272,6 @@
     background-color: #5a6268;
   }
 
-  .grupo-cuenta {
-    background-color: #f8f9fa;
-    border-left: 4px solid #007b80;
-  }
-
-  .grupo-header {
-    background-color: #e9ecef;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-  .grupo-header:hover {
-    background-color: #dee2e6;
-  }
-
-  .grupo-icono {
-    margin-right: 0.5rem;
-    transition: transform 0.3s ease;
-  }
-
-  .grupo-colapsado .grupo-icono {
-    transform: rotate(-90deg);
-  }
-
   .cuenta-detalle {
     background-color: white;
   }
@@ -416,7 +395,6 @@
   // ==============================
   let cuentas = [];
   let indiceEdicion = -1;
-  let gruposExpandidos = new Set(['1', '2', '3', '4', '5']);
 
   // ==============================
   // FUNCIONES PRINCIPALES
@@ -428,28 +406,68 @@
       const response = await fetch('/contabilidad/api/cuentas/');
       if (response.ok) {
         cuentas = await response.json();
-        console.log('Cuentas cargadas:', cuentas);
+        console.log('✅ Cuentas cargadas:', cuentas.length);
+        console.log('📋 Primeras 3 cuentas:', cuentas.slice(0, 3));
+        
+        // Verificar que las cuentas tengan el campo 'tipo'
+        if (cuentas.length > 0) {
+          const primeraC = cuentas[0];
+          console.log('🔍 Campos de primera cuenta:', Object.keys(primeraC));
+          console.log('Tipo de primera cuenta:', primeraC.tipo);
+          console.log('Grupo de primera cuenta:', primeraC.grupo);
+          
+          // Verificar distribución de grupos
+          const gruposUsados = [...new Set(cuentas.map(c => c.grupo))];
+          console.log('📊 Grupos usados en BD:', gruposUsados);
+          console.log('📊 Grupos en estructuraCompleta:', Object.keys(estructuraCompleta));
+          
+          // Verificar si hay cuentas con grupos que no existen
+          const gruposInvalidos = cuentas.filter(c => !estructuraCompleta[c.grupo]);
+          if (gruposInvalidos.length > 0) {
+            console.warn('⚠️ Cuentas con grupos inválidos:', gruposInvalidos.map(c => 
+              `${c.codigo} (grupo: ${c.grupo})`
+            ));
+          }
+        }
+        
         renderizarTabla();
       } else {
-        console.error('Error cargando cuentas:', response.status);
+        console.error('❌ Error cargando cuentas:', response.status);
         mostrarMensaje('Error al cargar las cuentas', 'error');
       }
     } catch (error) {
-      console.error('Error cargando cuentas:', error);
+      console.error('❌ Error cargando cuentas:', error);
       mostrarMensaje('Error de conexión al cargar las cuentas', 'error');
     }
   }
 
-  // Renderizar tabla con estructura jerárquica
+  // Renderizar tabla con solo cuentas de la base de datos
   function renderizarTabla(cuentasFiltradas = null) {
     const tbody = document.getElementById("tablaCuentas");
     const cuentasAMostrar = cuentasFiltradas || cuentas;
+    const hayFiltroActivo = cuentasFiltradas !== null;
 
-    if (cuentasAMostrar.length === 0) {
+    console.log('🎨 Renderizando tabla. Cuentas a mostrar:', cuentasAMostrar.length);
+    console.log('Hay filtro activo:', hayFiltroActivo);
+
+    if (cuentasAMostrar.length === 0 && hayFiltroActivo) {
       tbody.innerHTML = `
         <tr>
           <td colspan="5" class="text-center" style="padding: 2rem; color: #6c757d;">
+            <i class="bi bi-search" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
             No se encontraron cuentas que coincidan con la búsqueda.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    if (cuentas.length === 0 && !hayFiltroActivo) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center" style="padding: 2rem; color: #6c757d;">
+            <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
+            No hay cuentas registradas. Haz clic en "+ Nueva Cuenta" para agregar una.
           </td>
         </tr>
       `;
@@ -458,239 +476,61 @@
 
     let html = '';
     
-    // Función recursiva para renderizar grupos
-    function renderizarGrupo(grupoId, nivel = 0) {
-      const grupo = estructuraCompleta[grupoId];
-      if (!grupo) return '';
-
-      const estaExpandido = gruposExpandidos.has(grupoId);
-      const tieneHijos = Object.keys(estructuraCompleta).some(key => 
-        estructuraCompleta[key].padre === grupoId
-      );
-      
-      let grupoHtml = '';
+    // SOLO MOSTRAR CUENTAS DE LA BASE DE DATOS, NO LOS GRUPOS
+    cuentasAMostrar.forEach((cuenta, index) => {
+      const grupo = estructuraCompleta[cuenta.grupo];
+      const nivel = grupo ? grupo.nivel + 1 : 1;
       const paddingLeft = (nivel * 20) + 'px';
-      const esGrupoPrincipal = grupo.esGrupoPrincipal;
-      const esExpandible = tieneHijos;
-
-      // Determinar qué acciones mostrar según el tipo de grupo
-      let accionesHtml = '';
-      if (esGrupoPrincipal) {
-        // Grupos principales (1, 2, 3, 4, 5) - solo pueden agregar subgrupos
-        accionesHtml = `
-          <button
-            type="button"
-            class="btn btn-sm btn-success me-1"
-            onclick="agregarSubgrupoEnGrupo('${grupoId}')"
-            title="Agregar subgrupo"
-          >
-            +
-          </button>
-        `;
-      } else {
-        // Subgrupos (5.1, 5.2, etc.) - tienen todas las acciones
-        accionesHtml = `
-          <button
-            type="button"
-            class="btn btn-sm btn-success me-1"
-            onclick="agregarCuentaEnGrupo('${grupoId}')"
-            title="Agregar cuenta"
-          >
-            + 
-          </button>
-          <button
-            type="button"
-            class="btn btn-sm btn-warning me-1"
-            onclick="editarGrupo('${grupoId}')"
-            title="Editar grupo"
-          >
-            ✏️
-          </button>
-          <button
-            type="button"
-            class="btn btn-sm btn-danger"
-            onclick="eliminarGrupo('${grupoId}')"
-            title="Eliminar grupo"
-          >
-            🗑️
-          </button>
-        `;
-      }
-
-      // Header del grupo
-      grupoHtml += `
-        <tr class="grupo-cuenta ${!estaExpandido ? 'grupo-colapsado' : ''}" data-grupo="${grupoId}">
-          <td class="grupo-header" style="padding-left: ${paddingLeft};">
-            ${esExpandible ? `<span class="grupo-icono">${estaExpandido ? '▼' : '▶'}</span>` : '<span style="width: 16px; display: inline-block;"></span>'}
-            <strong>${grupoId}</strong>
+      
+      html += `
+        <tr class="cuenta-detalle">
+          <td style="padding-left: ${paddingLeft};">
+            <strong>${cuenta.codigo}</strong>
           </td>
-          <td class="grupo-header">
-            <strong>${grupo.nombre}</strong>
-          </td>
-          <td class="grupo-header">
-            <span class="badge-tipo badge-${grupo.tipo}">${grupo.tipo.replace('_', ' ').toUpperCase()}</span>
-          </td>
-          <td class="grupo-header">
-            <em>${esGrupoPrincipal ? 'Grupo principal' : 'Subgrupo'}</em>
-          </td>
-          <td class="grupo-header text-center btn-acciones">
-            ${accionesHtml}
+          <td>${cuenta.nombre}</td>
+          <td><span class="badge-tipo badge-${cuenta.tipo}">${cuenta.tipo.replace('_', ' ').toUpperCase()}</span></td>
+          <td>${cuenta.descripcion}</td>
+          <td class="text-center btn-acciones">
+            <button
+              type="button"
+              class="btn btn-sm btn-warning me-1"
+              onclick="editarCuenta(${index})"
+              title="Editar"
+            >
+              ✏️ 
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-danger"
+              onclick="eliminarCuenta(${index})"
+              title="Eliminar"
+            >
+              🗑️ 
+            </button>
           </td>
         </tr>
       `;
-
-      // Contenido del grupo (si está expandido)
-      if (estaExpandido) {
-        // 1. Renderizar subgrupos
-        const subgrupos = Object.keys(estructuraCompleta).filter(key => 
-          estructuraCompleta[key].padre === grupoId
-        );
-        
-        subgrupos.forEach(subgrupoId => {
-          grupoHtml += renderizarGrupo(subgrupoId, nivel + 1);
-        });
-
-        // 2. Renderizar cuentas que pertenecen a este grupo
-        const cuentasEnEsteGrupo = cuentasAMostrar.filter(cuenta => cuenta.grupo === grupoId);
-        
-        cuentasEnEsteGrupo.forEach((cuenta, index) => {
-          const indiceReal = cuentas.findIndex(c => c.id === cuenta.id);
-          grupoHtml += `
-            <tr class="cuenta-detalle">
-              <td style="padding-left: ${(nivel + 1) * 20}px;">
-                <strong>${cuenta.codigo}</strong>
-              </td>
-              <td>${cuenta.nombre}</td>
-              <td><span class="badge-tipo badge-${cuenta.tipo}">${cuenta.tipo.replace('_', ' ').toUpperCase()}</span></td>
-              <td>${cuenta.descripcion}</td>
-              <td class="text-center btn-acciones">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-warning me-1"
-                  onclick="editarCuenta(${indiceReal})"
-                  title="Editar"
-                >
-                  ✏️ 
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-danger"
-                  onclick="eliminarCuenta(${indiceReal})"
-                  title="Eliminar"
-                >
-                  🗑️ 
-                </button>
-              </td>
-            </tr>
-          `;
-        });
-      }
-
-      return grupoHtml;
-    }
-
-    // Renderizar grupos principales
-    ['1', '2', '3', '4', '5'].forEach(grupoId => {
-      html += renderizarGrupo(grupoId);
     });
+
+    console.log('📝 Filas generadas:', cuentasAMostrar.length);
+    
+    if (html === '') {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center" style="padding: 2rem; color: #6c757d;">
+            <i class="bi bi-funnel" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
+            No hay cuentas que mostrar con los filtros actuales.
+          </td>
+        </tr>
+      `;
+      return;
+    }
 
     tbody.innerHTML = html;
-
-    // Agregar event listeners para expandir/colapsar
-    tbody.querySelectorAll('.grupo-header').forEach(header => {
-      header.addEventListener('click', function() {
-        const grupoId = this.closest('tr').getAttribute('data-grupo');
-        toggleGrupo(grupoId);
-      });
-    });
   }
 
   // ==============================
-  // FUNCIONES PARA GRUPOS
-  // ==============================
-
-  function agregarSubgrupoEnGrupo(grupoPadreId) {
-    const grupoPadre = estructuraCompleta[grupoPadreId];
-    if (grupoPadre) {
-      // Encontrar el siguiente número de subgrupo disponible
-      const subgruposExistentes = Object.keys(estructuraCompleta).filter(key => 
-        estructuraCompleta[key].padre === grupoPadreId
-      );
-      
-      let siguienteNumero = 1;
-      if (subgruposExistentes.length > 0) {
-        const ultimoNumero = Math.max(...subgruposExistentes.map(subgrupoId => {
-          const partes = subgrupoId.split('.');
-          return parseInt(partes[partes.length - 1]) || 0;
-        }));
-        siguienteNumero = ultimoNumero + 1;
-      }
-      
-      const nuevoSubgrupoId = `${grupoPadreId}.${siguienteNumero}`;
-      const nombreSubgrupo = prompt(`Ingrese el nombre para el nuevo subgrupo ${nuevoSubgrupoId}:`);
-      
-      if (nombreSubgrupo) {
-        // Agregar el nuevo subgrupo a la estructura
-        estructuraCompleta[nuevoSubgrupoId] = {
-          nombre: nombreSubgrupo,
-          nivel: grupoPadre.nivel + 1,
-          padre: grupoPadreId,
-          tipo: grupoPadre.tipo,
-          grupo: nuevoSubgrupoId,
-          esGrupoPrincipal: false
-        };
-        
-        // Expandir el grupo padre para mostrar el nuevo subgrupo
-        gruposExpandidos.add(grupoPadreId);
-        renderizarTabla();
-        
-        mostrarMensaje(`Subgrupo ${nuevoSubgrupoId} creado exitosamente`, 'success');
-      }
-    }
-  }
-
-  function editarGrupo(grupoId) {
-    const grupo = estructuraCompleta[grupoId];
-    if (grupo) {
-      const nuevoNombre = prompt(`Editar nombre del grupo ${grupoId}:`, grupo.nombre);
-      if (nuevoNombre && nuevoNombre !== grupo.nombre) {
-        grupo.nombre = nuevoNombre;
-        renderizarTabla();
-        mostrarMensaje(`Grupo ${grupoId} actualizado exitosamente`, 'success');
-      }
-    }
-  }
-
-  function eliminarGrupo(grupoId) {
-    const grupo = estructuraCompleta[grupoId];
-    if (grupo) {
-      // Verificar si el grupo tiene cuentas asociadas
-      const cuentasEnGrupo = cuentas.filter(cuenta => cuenta.grupo === grupoId);
-      if (cuentasEnGrupo.length > 0) {
-        mostrarMensaje(`No se puede eliminar el grupo ${grupoId} porque tiene ${cuentasEnGrupo.length} cuenta(s) asociada(s)`, 'error');
-        return;
-      }
-      
-      // Verificar si el grupo tiene subgrupos
-      const tieneSubgrupos = Object.keys(estructuraCompleta).some(key => 
-        estructuraCompleta[key].padre === grupoId
-      );
-      
-      if (tieneSubgrupos) {
-        mostrarMensaje(`No se puede eliminar el grupo ${grupoId} porque tiene subgrupos asociados`, 'error');
-        return;
-      }
-      
-      if (confirm(`¿Está seguro que desea eliminar el grupo "${grupoId} - ${grupo.nombre}"?`)) {
-        delete estructuraCompleta[grupoId];
-        renderizarTabla();
-        mostrarMensaje(`Grupo ${grupoId} eliminado exitosamente`, 'success');
-      }
-    }
-  }
-
-  // ==============================
-  // FUNCIONES DEL MODAL - CORREGIDAS
+  // FUNCIONES DEL MODAL
   // ==============================
 
   function actualizarGruposModal() {
@@ -887,36 +727,23 @@
     alert(`${tipo.toUpperCase()}: ${mensaje}`);
   }
 
-  function toggleGrupo(grupoId) {
-    if (gruposExpandidos.has(grupoId)) {
-      gruposExpandidos.delete(grupoId);
-    } else {
-      gruposExpandidos.add(grupoId);
-    }
-    renderizarTabla();
-  }
-
-  function expandirTodo() {
-    Object.keys(estructuraCompleta).forEach(key => {
-      gruposExpandidos.add(key);
-    });
-    renderizarTabla();
-  }
-
-  function colapsarTodo() {
-    gruposExpandidos.clear();
-    ['1', '2', '3', '4', '5'].forEach(grupoId => {
-      gruposExpandidos.add(grupoId);
-    });
+  // Nueva función para limpiar filtros
+  function limpiarFiltros() {
+    document.getElementById("buscar").value = '';
+    document.getElementById("filtro-tipo").value = 'todos';
     renderizarTabla();
   }
 
   function buscarCuentas() {
     const busqueda = document.getElementById("buscar").value.toLowerCase();
-    const filtro = document.getElementById("filtro-tipo").value.toLowerCase();
+    const filtro = document.getElementById("filtro-tipo").value;
+
+    console.log('🔍 Búsqueda:', busqueda, 'Filtro:', filtro);
+    console.log('📊 Total cuentas:', cuentas.length);
 
     let cuentasFiltradas = cuentas;
 
+    // Aplicar filtro de búsqueda
     if (busqueda) {
       cuentasFiltradas = cuentasFiltradas.filter(
         (cuenta) =>
@@ -924,12 +751,15 @@
           cuenta.nombre.toLowerCase().includes(busqueda) ||
           cuenta.descripcion.toLowerCase().includes(busqueda)
       );
+      console.log('Después de búsqueda:', cuentasFiltradas.length);
     }
 
+    // Aplicar filtro de tipo
     if (filtro !== "todos") {
       cuentasFiltradas = cuentasFiltradas.filter(
-        (cuenta) => cuenta.tipo.toLowerCase() === filtro
+        (cuenta) => cuenta.tipo === filtro
       );
+      console.log('Después de filtro tipo:', cuentasFiltradas.length);
     }
 
     renderizarTabla(cuentasFiltradas);
@@ -943,8 +773,6 @@
 
     // Event listeners
     document.getElementById("btnNuevaCuenta").addEventListener("click", () => abrirModal(true));
-    document.getElementById("btnExpandirTodo").addEventListener("click", expandirTodo);
-    document.getElementById("btnColapsarTodo").addEventListener("click", colapsarTodo);
     document.getElementById("btnCerrarModal").addEventListener("click", cerrarModal);
     document.getElementById("btnCancelar").addEventListener("click", cerrarModal);
     document.getElementById("btnGuardarCuenta").addEventListener("click", guardarCuenta);
@@ -953,8 +781,9 @@
     });
     document.getElementById("buscar").addEventListener("input", buscarCuentas);
     document.getElementById("filtro-tipo").addEventListener("change", buscarCuentas);
+    document.getElementById("btnLimpiarBusqueda").addEventListener("click", limpiarFiltros);
     
-    // ✅ NUEVO: Actualizar grupos cuando cambie el tipo
+    // Actualizar grupos cuando cambie el tipo
     document.getElementById("tipo").addEventListener("change", actualizarGruposModal);
   });
 </script>

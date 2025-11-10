@@ -477,29 +477,37 @@ def guardar_transaccion(request):
         })
 
 # -------------------------
-# LIBRO MAYOR
+# LIBRO MAYOR - VERSIÓN CORREGIDA PARA MOSTRAR TODOS LOS ASIENTOS
 # -------------------------
 @login_required(login_url='/login/')
 def libro_mayor(request):
-    """Vista para mostrar el libro mayor"""
+    """Vista para mostrar el libro mayor, permitiendo ver todos los asientos."""
     selected_cuenta = request.GET.get('cuenta', '')
     
+    # Obtener todas las cuentas detalle para el selector
     todas_las_cuentas = Cuenta.objects.filter(es_cuenta_detalle=True).values_list('nombre', flat=True).distinct()
     
     cuentas_data = []
     total_debe = 0
     total_haber = 0
-    saldo_acumulado = 0
+    
+    # --- Lógica principal ---
     
     if selected_cuenta:
+        # Caso 1: Se seleccionó una cuenta específica (la lógica original se mantiene)
         try:
             cuenta_obj = Cuenta.objects.get(nombre=selected_cuenta)
+            
+            # Filtra las partidas por esa cuenta y las ordena por fecha y ID de asiento
             partidas = Partida.objects.filter(cuenta=cuenta_obj).select_related('asiento').order_by('asiento__fecha', 'asiento__id')
+            
+            saldo_acumulado = 0
             
             for partida in partidas:
                 debe = float(partida.debe)
                 haber = float(partida.haber)
                 
+                # Cálculo del saldo acumulado según la naturaleza de la cuenta
                 if cuenta_obj.tipo in ['activo', 'gasto']:
                     saldo_acumulado += debe - haber
                 else:
@@ -511,15 +519,45 @@ def libro_mayor(request):
                     'descripcion': partida.descripcion or partida.asiento.descripcion,
                     'debe': debe,
                     'haber': haber,
-                    'saldo': saldo_acumulado
+                    'saldo': saldo_acumulado # Saldo acumulado para la cuenta seleccionada
                 })
                 
                 total_debe += debe
                 total_haber += haber
                 
         except Cuenta.DoesNotExist:
-            pass
+            pass # No hace nada si la cuenta no existe
     
+    elif not selected_cuenta and 'cuenta' in request.GET:
+        # Caso 2: Se seleccionó "-- Todas las cuentas --" (cuando 'cuenta' está en GET pero vacío)
+        
+        # Obtener TODAS las partidas de TODOS los asientos, ordenadas por fecha y asiento
+        todas_las_partidas = Partida.objects.select_related('asiento', 'cuenta').order_by('asiento__fecha', 'asiento__id')
+        
+        # Al mostrar "Todas las cuentas", el "Saldo Acumulado" por fila no tiene sentido (pues el saldo es por cuenta).
+        # Por lo tanto, solo mostraremos los movimientos y los totales generales (Debe y Haber).
+        
+        for partida in todas_las_partidas:
+            debe = float(partida.debe)
+            haber = float(partida.haber)
+            
+            cuentas_data.append({
+                'fecha': partida.asiento.fecha,
+                'numero': partida.asiento.id,
+                # Mostramos la cuenta a la que afecta el movimiento
+                'descripcion': f"[{partida.cuenta.codigo} - {partida.cuenta.nombre}] | {partida.descripcion or partida.asiento.descripcion}", 
+                'debe': debe,
+                'haber': haber,
+                'saldo': None # No se calcula saldo acumulado en esta vista
+            })
+            
+            total_debe += debe
+            total_haber += haber
+            
+        # El saldo final no se calcula aquí, ya que el reporte muestra todas las cuentas.
+        saldo_acumulado = total_debe - total_haber 
+        
+    # --- Contexto ---
     context = {
         'selected_cuenta': selected_cuenta,
         'todas_las_cuentas': todas_las_cuentas,
@@ -527,7 +565,8 @@ def libro_mayor(request):
         'totales': {
             'total_debe': total_debe,
             'total_haber': total_haber,
-            'total_saldo': saldo_acumulado
+            # Se usa el saldo para la alerta solo si se seleccionó una cuenta específica
+            'total_saldo': saldo_acumulado if selected_cuenta else total_debe - total_haber 
         }
     }
     return render(request, 'contabilidad/libro_mayor.html', context)

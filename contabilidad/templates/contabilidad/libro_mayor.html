@@ -6,14 +6,12 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/contabilidad/libro_mayor.css' %}">
 
-<!-- Header -->
 <div class="container-fluid mt-4">
     <div class="text-center mb-4">
         <h1 class="display-5">📒 Libro Mayor</h1>
         <p class="text-muted">Consulta los movimientos por cuenta contable</p>
     </div>
 
-    <!-- Formulario para el filtro -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" action="{% url 'contabilidad:libro_mayor' %}">
@@ -23,7 +21,7 @@
                             <i class="bi bi-funnel"></i> Seleccionar Cuenta Contable
                         </label>
                         <select name="cuenta" id="filtro-cuenta" class="form-select">
-                            <option value="">-- Todas las cuentas --</option>
+                            <option value="">-- Todas las cuentas --</option> 
                             {% for cuenta_nombre in todas_las_cuentas %}
                                 <option value="{{ cuenta_nombre }}" 
                                         {% if cuenta_nombre == selected_cuenta %}selected{% endif %}>
@@ -42,22 +40,32 @@
         </div>
     </div>
 
-    <!-- Información de la cuenta seleccionada -->
-    {% if selected_cuenta %}
+    {% if selected_cuenta or 'cuenta' in request.GET %}
     <div class="alert alert-info d-flex justify-content-between align-items-center">
         <div>
             <i class="bi bi-info-circle"></i>
-            <strong>Cuenta seleccionada:</strong> {{ selected_cuenta }}
+            <strong>Cuenta seleccionada:</strong> 
+            {% if selected_cuenta %}
+                {{ selected_cuenta }}
+            {% else %}
+                Todas las cuentas
+            {% endif %}
         </div>
         <div>
             <span class="badge bg-primary">Total Débito: ${{ totales.total_debe|floatformat:2 }}</span>
             <span class="badge bg-success ms-2">Total Crédito: ${{ totales.total_haber|floatformat:2 }}</span>
-            <span class="badge bg-secondary ms-2">Saldo: ${{ totales.total_saldo|floatformat:2 }}</span>
+            
+            {% if selected_cuenta %}
+                <span class="badge bg-secondary ms-2">Saldo: ${{ totales.total_saldo|floatformat:2 }}</span>
+            {% else %}
+                <span class="badge bg-warning text-dark ms-2">
+                    Desbalance (Debe - Haber): ${{ totales.total_saldo|floatformat:2 }}
+                </span>
+            {% endif %}
         </div>
     </div>
     {% endif %}
 
-    <!-- Tabla de movimientos -->
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
@@ -97,11 +105,17 @@
                                     <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
-                            <td class="text-end fw-bold 
-                                {% if cuenta.saldo > 0 %}text-success
-                                {% elif cuenta.saldo < 0 %}text-danger
-                                {% else %}text-muted{% endif %}">
-                                ${{ cuenta.saldo|floatformat:2 }}
+                            <td class="text-end fw-bold">
+                                {% if cuenta.saldo is not None %}
+                                    <span class="
+                                        {% if cuenta.saldo > 0 %}text-success
+                                        {% elif cuenta.saldo < 0 %}text-danger
+                                        {% else %}text-muted{% endif %}">
+                                        ${{ cuenta.saldo|floatformat:2 }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
                             </td>
                         </tr>
                         {% empty %}
@@ -113,8 +127,8 @@
                                     <small>Esta cuenta no tiene transacciones registradas.</small>
                                 {% else %}
                                     <i class="bi bi-funnel" style="font-size: 2rem;"></i>
-                                    <p class="mt-2">Selecciona una cuenta para ver sus movimientos</p>
-                                    <small>Usa el filtro de arriba para elegir una cuenta contable.</small>
+                                    <p class="mt-2">Selecciona una cuenta o filtra para ver todos los movimientos</p>
+                                    <small>Usa el filtro de arriba para elegir una cuenta contable o ver el detalle completo.</small>
                                 {% endif %}
                             </td>
                         </tr>
@@ -127,11 +141,17 @@
                             <td colspan="3" class="fw-bold text-end">TOTALES:</td>
                             <td class="fw-bold text-end text-success">${{ totales.total_debe|floatformat:2 }}</td>
                             <td class="fw-bold text-end text-danger">${{ totales.total_haber|floatformat:2 }}</td>
-                            <td class="fw-bold text-end 
-                                {% if totales.total_saldo > 0 %}text-success
-                                {% elif totales.total_saldo < 0 %}text-danger
-                                {% else %}text-muted{% endif %}">
-                                ${{ totales.total_saldo|floatformat:2 }}
+                            <td class="fw-bold text-end">
+                                {% if selected_cuenta %}
+                                    <span class="
+                                        {% if totales.total_saldo > 0 %}text-success
+                                        {% elif totales.total_saldo < 0 %}text-danger
+                                        {% else %}text-muted{% endif %}">
+                                        ${{ totales.total_saldo|floatformat:2 }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
                             </td>
                         </tr>
                     </tfoot>
@@ -141,10 +161,9 @@
         </div>
     </div>
 
-    <!-- Botones de acción -->
     <div class="d-flex justify-content-between mt-4">
         <div>
-            {% if selected_cuenta %}
+            {% if selected_cuenta or 'cuenta' in request.GET %}
                 <a href="{% url 'contabilidad:nueva_transaccion' %}" class="btn btn-outline-primary">
                     <i class="bi bi-plus-circle"></i> Nueva Transacción
                 </a>
@@ -160,7 +179,6 @@
     </div>
 </div>
 
-<!-- Estilos adicionales -->
 <style>
     .table th {
         background-color: #343a40;
