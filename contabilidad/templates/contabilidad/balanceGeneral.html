@@ -1,10 +1,13 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Balance General -
-Estados Financieros{% endblock %} {% block content %}
-<link
-  rel="stylesheet"
-  href="{% static 'css/contabilidad/balanceGeneral.css' %}"
-/>
+{% extends 'base.html' %}
+{% load static %}
 
+{% block title %}Balance General - Estados Financieros{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/contabilidad/balanceGeneral.css' %}">
+{% endblock %}
+
+{% block content %}
 <div class="container py-4">
   <!-- Header -->
   <div class="mb-4 text-center">
@@ -13,25 +16,25 @@ Estados Financieros{% endblock %} {% block content %}
   </div>
 
   <!-- Controles / Filtros -->
-  <div class="row mb-3 g-2 align-items-center filtros-grid">
-    <div class="col-md-3">
-      <label class="form-label">Fecha Inicial</label>
-      <input type="date" class="form-control" value="2025-01-01" />
+  <form method="GET" action="{% url 'contabilidad:balanceGeneral' %}">
+    <div class="row mb-3 g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Fecha Inicial</label>
+        <input type="date" name="fecha_inicial" class="form-control" value="{{ fecha_inicial }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha Final</label>
+        <input type="date" name="fecha_final" class="form-control" value="{{ fecha_final }}">
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Generar Reporte</button>
+      </div>
+      <div class="col-md-4 text-end">
+        <button type="button" class="btn btn-sm btn-warning me-1" onclick="exportarExcel()">📤 Exportar</button>
+        <button type="button" class="btn btn-sm btn-danger" onclick="window.print()">🖨️ Imprimir</button>
+      </div>
     </div>
-    <div class="col-md-3">
-      <label class="form-label">Fecha Final</label>
-      <input type="date" class="form-control" value="2025-10-26" />
-    </div>
-    <div class="col-md-2">
-      <label class="form-label d-block">&nbsp;</label>
-      <button class="btn btn-primary w-100">Generar Reporte</button>
-    </div>
-    <div class="col-md-4 text-end">
-      <label class="form-label d-block">&nbsp;</label>
-      <button class="btn btn-sm btn-warning me-1">📤 Exportar</button>
-      <button class="btn btn-sm btn-danger">🖨️ Imprimir</button>
-    </div>
-  </div>
+  </form>
 
   <!-- Tabla de Balance -->
   <div class="balance-table-container">
@@ -47,99 +50,72 @@ Estados Financieros{% endblock %} {% block content %}
         <tbody>
           <!-- ACTIVOS -->
           <tr class="group-header table-primary">
-            <td colspan="3">ACTIVOS</td>
+            <td colspan="3"><strong>ACTIVOS</strong></td>
           </tr>
+          {% for cuenta in activos %}
           <tr class="account-row">
-            <td class="cuenta-item">Caja</td>
-            <td class="text-end">$45,000.00</td>
+            <td class="cuenta-item">{{ cuenta.codigo }} - {{ cuenta.nombre }}</td>
+            <td class="text-end">${{ cuenta.saldo|floatformat:2 }}</td>
             <td></td>
           </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Banco</td>
-            <td class="text-end">$32,000.00</td>
-            <td></td>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-center text-muted">No hay movimientos de activos en este período</td>
           </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Cuentas por Cobrar</td>
-            <td class="text-end">$28,000.00</td>
-            <td></td>
-          </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Inventarios</td>
-            <td class="text-end">$35,000.00</td>
-            <td></td>
-          </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Propiedad, Planta y Equipo</td>
-            <td class="text-end">$150,000.00</td>
-            <td></td>
-          </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Depreciación Acumulada</td>
-            <td class="text-end">-$30,000.00</td>
-            <td></td>
-          </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Inversiones a Largo Plazo</td>
-            <td class="text-end">$25,000.00</td>
+          {% endfor %}
+          <tr class="subtotal-row">
+            <td><strong>TOTAL ACTIVOS</strong></td>
+            <td class="text-end"><strong>${{ total_activos|floatformat:2 }}</strong></td>
             <td></td>
           </tr>
 
           <!-- PASIVOS -->
           <tr class="group-header table-danger">
-            <td colspan="3">PASIVOS</td>
+            <td colspan="3"><strong>PASIVOS</strong></td>
           </tr>
+          {% for cuenta in pasivos %}
           <tr class="account-row">
-            <td class="cuenta-item">Cuentas por pagar</td>
+            <td class="cuenta-item">{{ cuenta.codigo }} - {{ cuenta.nombre }}</td>
             <td></td>
-            <td class="text-end">$25,000.00</td>
+            <td class="text-end">${{ cuenta.saldo|floatformat:2 }}</td>
           </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Préstamos Corto Plazo</td>
-            <td></td>
-            <td class="text-end">$15,000.00</td>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-center text-muted">No hay movimientos de pasivos en este período</td>
           </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Impuestos por Pagar</td>
+          {% endfor %}
+          <tr class="subtotal-row">
+            <td><strong>TOTAL PASIVOS</strong></td>
             <td></td>
-            <td class="text-end">$8,000.00</td>
-          </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Préstamos Largo Plazo</td>
-            <td></td>
-            <td class="text-end">$80,000.00</td>
-          </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Hipotecas por Pagar</td>
-            <td></td>
-            <td class="text-end">$45,000.00</td>
+            <td class="text-end"><strong>${{ total_pasivos|floatformat:2 }}</strong></td>
           </tr>
 
           <!-- CAPITAL -->
           <tr class="group-header table-success">
-            <td colspan="3">CAPITAL</td>
+            <td colspan="3"><strong>CAPITAL</strong></td>
           </tr>
+          {% for cuenta in capital %}
           <tr class="account-row">
-            <td class="cuenta-item">Capital social</td>
+            <td class="cuenta-item">{{ cuenta.codigo }} - {{ cuenta.nombre }}</td>
             <td></td>
-            <td class="text-end">$75,000.00</td>
+            <td class="text-end">${{ cuenta.saldo|floatformat:2 }}</td>
           </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Utilidades Retenidas</td>
-            <td></td>
-            <td class="text-end">$30,000.00</td>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-center text-muted">No hay movimientos de capital en este período</td>
           </tr>
-          <tr class="account-row">
-            <td class="cuenta-item">Reserva Legal</td>
+          {% endfor %}
+          <tr class="subtotal-row">
+            <td><strong>TOTAL CAPITAL</strong></td>
             <td></td>
-            <td class="text-end">$12,000.00</td>
+            <td class="text-end"><strong>${{ total_capital|floatformat:2 }}</strong></td>
           </tr>
 
           <!-- TOTAL -->
           <tr class="total-row">
-            <td>TOTAL</td>
-            <td class="text-end total-value">$285,000.00</td>
-            <td class="text-end total-value">$285,000.00</td>
+            <td><strong>TOTAL</strong></td>
+            <td class="text-end total-value"><strong>${{ total_debe|floatformat:2 }}</strong></td>
+            <td class="text-end total-value"><strong>${{ total_haber|floatformat:2 }}</strong></td>
           </tr>
         </tbody>
       </table>
@@ -148,7 +124,58 @@ Estados Financieros{% endblock %} {% block content %}
 
   <!-- Verificación de balance -->
   <div class="mt-3 text-center">
-    <span class="badge-success">✓ Balance Cuadrado</span>
+    {% if esta_balanceado %}
+      <span class="badge bg-success">✓ Balance Cuadrado</span>
+    {% else %}
+      <span class="badge bg-danger">⚠ Balance Descuadrado</span>
+    {% endif %}
   </div>
 </div>
+
+<style>
+.balance-table-container {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.group-header {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.cuenta-item {
+  padding-left: 2rem;
+}
+
+.subtotal-row {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.total-row {
+  background-color: #343a40;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.total-value {
+  font-size: 1.2rem;
+}
+
+@media print {
+  .btn, form {
+    display: none;
+  }
+}
+</style>
+
+<script>
+function exportarExcel() {
+  // Implementar exportación a Excel
+  alert('Función de exportación en desarrollo');
+}
+</script>
 {% endblock %}

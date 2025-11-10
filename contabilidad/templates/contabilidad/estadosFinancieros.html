@@ -14,15 +14,64 @@ ContaCloud{% endblock %} {% block content %}
 
   <div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center mt-4">
     <div class="col">
-      <a href="#" class="action-card">Balance General</a>
+      <a href="{% url 'contabilidad:balanceGeneral' %}" class="action-card">Balance General</a>
     </div>
     <div class="col">
-      <a href="#" class="action-card">Estado de Resultados</a>
+      <a href="{% url 'contabilidad:estadoResultados' %}" class="action-card">Estado de Resultados</a>
     </div>
     <div class="col">
-      <a href="#" class="action-card">Estado de Capital</a>
+      <a href="{% url 'contabilidad:estadoCapital' %}" class="action-card">Estado de Capital</a>
     </div>
   </div>
 </div>
+<style>
+.action-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    background: white;
+    height: 100%;
+}
 
+.action-card:hover {
+    text-decoration: none;
+    color: inherit;
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-color: #007bff;
+}
+
+.action-card .card-body {
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.action-card .card-title {
+    color: #007bff;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+}
+
+.welcome-header h2 {
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.welcome-header p {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+</style>
+</style>
 {% endblock %}

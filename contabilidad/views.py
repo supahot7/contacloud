@@ -10,6 +10,9 @@ from decimal import Decimal
 from .models import Cuenta, Asiento, Partida, Licencia
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Sum, Q
+from datetime import datetime
+
 
 # -------------------------
 # VISTA PRINCIPAL
@@ -44,26 +47,274 @@ def catalogo_cuentas(request):
 # -------------------------
 # Estados Financieros
 # -------------------------
+@login_required(login_url='/login/')
 def estados_financieros(request):
     return render(request, 'contabilidad/estadosFinancieros.html')
 
 # -------------------------
-# Balance General
+# Balance General - CON DATOS REALES
 # -------------------------
+#@login_required(login_url='/login/')
 def balance_general(request):
-    return render(request, 'contabilidad/balanceGeneral.html')
+    """Balance General con datos reales de la contabilidad"""
+    from django.db.models import Sum, Q
+    from datetime import datetime
+    
+    # Obtener filtros de fecha
+    fecha_inicial = request.GET.get('fecha_inicial', '2025-01-01')
+    fecha_final = request.GET.get('fecha_final', datetime.now().strftime('%Y-%m-%d'))
+    
+    # Función para calcular saldo de una cuenta
+    def calcular_saldo(cuenta_tipo):
+        cuentas = Cuenta.objects.filter(
+            tipo=cuenta_tipo,
+            es_cuenta_detalle=True
+        )
+        
+        resultados = []
+        total = 0
+        
+        for cuenta in cuentas:
+            partidas = Partida.objects.filter(
+                cuenta=cuenta,
+                asiento__fecha__range=[fecha_inicial, fecha_final],
+                asiento__estado='contabilizado'
+            )
+            
+            debe = partidas.aggregate(total=Sum('debe'))['total'] or 0
+            haber = partidas.aggregate(total=Sum('haber'))['total'] or 0
+            
+            # Calcular saldo según naturaleza de la cuenta
+            if cuenta_tipo in ['activo', 'gasto']:
+                saldo = debe - haber
+            else:  # pasivo, capital, ingreso
+                saldo = haber - debe
+            
+            if saldo != 0:  # Solo mostrar cuentas con movimiento
+                resultados.append({
+                    'codigo': cuenta.codigo,
+                    'nombre': cuenta.nombre,
+                    'debe': debe if debe > haber else 0,
+                    'haber': haber if haber > debe else 0,
+                    'saldo': abs(saldo)
+                })
+                total += abs(saldo)
+        
+        return resultados, total
+    
+    # Calcular por cada tipo de cuenta
+    activos, total_activos = calcular_saldo('activo')
+    pasivos, total_pasivos = calcular_saldo('pasivo')
+    capital, total_capital = calcular_saldo('capital')
+    
+    # Verificar balance
+    total_debe = total_activos
+    total_haber = total_pasivos + total_capital
+    esta_balanceado = abs(total_debe - total_haber) < 0.01
+    
+    context = {
+        'fecha_inicial': fecha_inicial,
+        'fecha_final': fecha_final,
+        'activos': activos,
+        'pasivos': pasivos,
+        'capital': capital,
+        'total_activos': total_activos,
+        'total_pasivos': total_pasivos,
+        'total_capital': total_capital,
+        'total_debe': total_debe,
+        'total_haber': total_haber,
+        'esta_balanceado': esta_balanceado,
+    }
+    
+    return render(request, 'contabilidad/balanceGeneral.html', context)
 
 # -------------------------
 # Estado de Resultados
 # -------------------------
+@login_required(login_url='/login/')
 def estado_resultados(request):
-    return render(request, 'contabilidad/estadoResultados.html')
+    """Estado de Resultados con datos reales de la contabilidad"""
+    from datetime import datetime
+    
+    # Obtener filtros de fecha
+    fecha_inicio = request.GET.get('fecha_inicio', '2025-01-01')
+    fecha_fin = request.GET.get('fecha_fin', datetime.now().strftime('%Y-%m-%d'))
+    
+    # Función para obtener cuentas con saldo
+    def obtener_cuentas_con_saldo(tipo_cuenta):
+        cuentas = Cuenta.objects.filter(
+            tipo=tipo_cuenta,
+            es_cuenta_detalle=True
+        )
+        
+        resultados = []
+        total = 0
+        
+        for cuenta in cuentas:
+            partidas = Partida.objects.filter(
+                cuenta=cuenta,
+                asiento__fecha__range=[fecha_inicio, fecha_fin],
+                asiento__estado='contabilizado'
+            )
+            
+            debe = partidas.aggregate(total=Sum('debe'))['total'] or 0
+            haber = partidas.aggregate(total=Sum('haber'))['total'] or 0
+            
+            # Para ingresos: haber - debe (naturaleza acreedora)
+            # Para gastos: debe - haber (naturaleza deudora)
+            if tipo_cuenta == 'ingreso':
+                saldo = haber - debe
+            else:  # gasto
+                saldo = debe - haber
+            
+            if saldo > 0:
+                resultados.append({
+                    'nombre': f"{cuenta.codigo} - {cuenta.nombre}",
+                    'monto': saldo
+                })
+                total += saldo
+        
+        return resultados, total
+    
+    # Obtener datos
+    ingresos, total_ingresos = obtener_cuentas_con_saldo('ingreso')
+    gastos, total_gastos = obtener_cuentas_con_saldo('gasto')
+    
+    # Calcular utilidad/pérdida neta
+    utilidad_neta = total_ingresos - total_gastos
+    
+    # Determinar si es utilidad o pérdida
+    if utilidad_neta >= 0:
+        nombre_utilidad = 'UTILIDAD NETA'
+        clase_utilidad = 'table-success'
+    else:
+        nombre_utilidad = 'PÉRDIDA NETA'
+        clase_utilidad = 'table-danger'
+    
+    context = {
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'ingresos': ingresos,
+        'total_ingresos': total_ingresos,
+        'gastos': gastos,
+        'total_gastos': total_gastos,
+        'utilidad_neta': abs(utilidad_neta),
+        'nombre_utilidad': nombre_utilidad,
+        'clase_utilidad': clase_utilidad,
+        # No hay costos separados en tu catálogo, así que los dejamos vacíos
+        'costos': [],
+        'total_costos': 0,
+        'utilidad_bruta': total_ingresos,  # Sin costos, utilidad bruta = ingresos
+    }
+    
+    return render(request, 'contabilidad/estadoResultados.html', context)
 
 # -------------------------
 # Estado de Capital
 # -------------------------
+@login_required(login_url='/login/')
 def estado_capital(request):
-    return render(request, 'contabilidad/estadoCapital.html')
+    """Estado de Capital con datos reales de la contabilidad"""
+    from datetime import datetime
+    
+    # Obtener filtros de fecha
+    fecha_inicio = request.GET.get('fecha_inicio', '2025-01-01')
+    fecha_fin = request.GET.get('fecha_fin', datetime.now().strftime('%Y-%m-%d'))
+    
+    # Obtener cuentas de capital
+    cuentas_capital = Cuenta.objects.filter(
+        tipo='capital',
+        es_cuenta_detalle=True
+    )
+    
+    capital_inicial_monto = 0
+    aumentos = []
+    total_aumentos = 0
+    
+    for cuenta in cuentas_capital:
+        partidas = Partida.objects.filter(
+            cuenta=cuenta,
+            asiento__fecha__range=[fecha_inicio, fecha_fin],
+            asiento__estado='contabilizado'
+        )
+        
+        debe = partidas.aggregate(total=Sum('debe'))['total'] or 0
+        haber = partidas.aggregate(total=Sum('haber'))['total'] or 0
+        saldo = haber - debe  # Capital tiene naturaleza acreedora
+        
+        if saldo > 0:
+            if 'capital social' in cuenta.nombre.lower():
+                capital_inicial_monto = saldo
+            else:
+                aumentos.append({
+                    'nombre': f"{cuenta.codigo} - {cuenta.nombre}",
+                    'monto': saldo
+                })
+                total_aumentos += saldo
+    
+    # Obtener utilidad del período desde Estado de Resultados
+    ingresos_total = Cuenta.objects.filter(tipo='ingreso', es_cuenta_detalle=True)
+    gastos_total = Cuenta.objects.filter(tipo='gasto', es_cuenta_detalle=True)
+    
+    total_ing = 0
+    for cuenta in ingresos_total:
+        partidas = Partida.objects.filter(
+            cuenta=cuenta,
+            asiento__fecha__range=[fecha_inicio, fecha_fin],
+            asiento__estado='contabilizado'
+        )
+        debe = partidas.aggregate(total=Sum('debe'))['total'] or 0
+        haber = partidas.aggregate(total=Sum('haber'))['total'] or 0
+        total_ing += (haber - debe)
+    
+    total_gast = 0
+    for cuenta in gastos_total:
+        partidas = Partida.objects.filter(
+            cuenta=cuenta,
+            asiento__fecha__range=[fecha_inicio, fecha_fin],
+            asiento__estado='contabilizado'
+        )
+        debe = partidas.aggregate(total=Sum('debe'))['total'] or 0
+        haber = partidas.aggregate(total=Sum('haber'))['total'] or 0
+        total_gast += (debe - haber)
+    
+    utilidad_periodo = total_ing - total_gast
+    
+    if utilidad_periodo > 0:
+        aumentos.append({
+            'nombre': 'Utilidad del ejercicio',
+            'monto': utilidad_periodo
+        })
+        total_aumentos += utilidad_periodo
+    
+    # Calcular capital final
+    capital_final = capital_inicial_monto + total_aumentos
+    
+    # Determinar clase CSS
+    if capital_final >= capital_inicial_monto:
+        nombre_capital_final = 'CAPITAL FINAL'
+        clase_capital = 'table-success'
+    else:
+        nombre_capital_final = 'CAPITAL FINAL (DISMINUIDO)'
+        clase_capital = 'table-warning'
+    
+    context = {
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'capital_inicial': {
+            'nombre': 'Capital Social',
+            'monto': capital_inicial_monto
+        },
+        'aumentos_capital': aumentos,
+        'total_aumentos': total_aumentos,
+        'disminuciones_capital': [],  # Por ahora vacío
+        'total_disminuciones': 0,
+        'capital_final': capital_final,
+        'nombre_capital_final': nombre_capital_final,
+        'clase_capital': clase_capital,
+    }
+    
+    return render(request, 'contabilidad/estadoCapital.html', context)
 
 # -------------------------
 # DETALLE DE CUENTA

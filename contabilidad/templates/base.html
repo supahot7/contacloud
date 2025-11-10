@@ -70,6 +70,12 @@
             sidebarPinned = !sidebarPinned;
             sidebar.classList.toggle('show', sidebarPinned);
         });
+        // ✅ DEBUG: Ver qué pasa con los clicks
+    document.addEventListener('click', function(e) {
+        if (e.target.tagName === 'A') {
+            console.log('Click en link:', e.target.href);
+        }
+    });
     </script>
 </body>
 </html>

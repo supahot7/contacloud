@@ -1,30 +1,47 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Panel Principal - ContaCloud{% endblock %}
+{% block title %}Estados Financieros - ContaCloud{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/contabilidad/estadosFinancieros.css' %}">
+{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static '/css/index.css' %}">
-<div class="welcome-header">
-    <h2>Estados Financieros</h2> 
-  
-</div>
+<div class="container py-4">
+  <!-- Header -->
+  <div class="mb-4 text-center">
+    <h1 class="display-5">Estados Financieros</h1>
+    <p class="lead">Gestión de los estados Financieros</p>
+    <p class="badge bg-success">✅ VERSIÓN NUEVA CARGADA</p>
+  </div>
 
-<div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center">
+  <div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center mt-4">
     <div class="col">
-        <a href="#" class="action-card">
-            Balance General
-        </a>
+      <a href="{% url 'contabilidad:balanceGeneral' %}" class="action-card">
+        Balance General
+      </a>
     </div>
     <div class="col">
-        <a href="#" class="action-card">
-            Estado de Resultados
-        </a>
+      <a href="{% url 'contabilidad:estadoResultados' %}" class="action-card">
+        Estado de Resultados
+      </a>
     </div>
     <div class="col">
-        <a href="#" class="action-card">
-            Estado de Capital
-        </a>
+      <a href="{% url 'contabilidad:estadoCapital' %}" class="action-card">
+        Estado de Capital
+      </a>
     </div>
+  </div>
+
+  <!-- DEBUG: Mostrar las URLs generadas -->
+  <div class="mt-5 alert alert-info">
+    <strong>🔍 URLs generadas:</strong>
+    <ul>
+      <li>Balance: {% url 'contabilidad:balanceGeneral' %}</li>
+      <li>Resultados: {% url 'contabilidad:estadoResultados' %}</li>
+      <li>Capital: {% url 'contabilidad:estadoCapital' %}</li>
+    </ul>
+  </div>
 </div>
 {% endblock %}
