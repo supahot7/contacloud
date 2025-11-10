@@ -76,7 +76,7 @@
         </div>
 
         <!-- Formulario Mano de Obra -->
-       <form id="formManoObra" class="cost-form" method="POST" >
+        <form id="formManoObra" class="cost-form" method="POST" action="{% url 'costos:manoObra' %}">
           {% csrf_token %}
           <div class="row g-3">
             <div class="col-md-6">
@@ -181,7 +181,7 @@
         </div>
 
         <!-- Formulario CIF -->
-       <form id="formCIF" class="cost-form" method="POST" action="{% url 'costos:costosIndirectos' %}">
+        <form id="formCIF" class="cost-form" method="POST" action="{% url 'costos:costosIndirectos' %}">
           {% csrf_token %}
           <div class="row g-3">
             <div class="col-md-6">
@@ -246,7 +246,7 @@
                 <td>{{ registro.concepto }}</td>
                 <td>{{ registro.get_categoria_display }}</td>
                 <td>${{ registro.monto }}</td>
-                <td>{{ registro.fecha }}</td>
+                <td>{{ registro.fecha_registro }}</td>
                 <td>{{ registro.descripcion|default:"-" }}</td>
                 <td>
                   <form method="POST" action="{% url 'costos:eliminar_costo_indirecto' registro.id %}" style="display: inline;">
@@ -318,7 +318,8 @@
         </div>
 
         <div class="mt-4">
-          <button class="btn btn-success btn-lg w-100" onclick="exportarPDF()">
+          <!-- Botón separado del formulario -->
+          <button type="button" class="btn btn-success btn-lg w-100" id="btnExportarPDF">
             📄 Exportar PDF
           </button>
         </div>
@@ -337,11 +338,7 @@
   </div>
 </div>
 
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="{% static 'js/contabilidad/manoObra.js' %}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
 <script>
 // ==============================
 // Función para exportar PDF (Versión Mejorada y Formal)
@@ -357,7 +354,7 @@ function exportarPDF() {
     }
     
     // Mostrar loading
-    const button = event.target;
+    const button = document.getElementById('btnExportarPDF');
     const originalText = button.innerHTML;
     button.innerHTML = '⏳ Generando PDF...';
     button.disabled = true;
@@ -593,12 +590,17 @@ function exportarPDF() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Sistema de PDF cargado correctamente');
     
+    // Configurar el botón de PDF
+    const btnExportarPDF = document.getElementById('btnExportarPDF');
+    if (btnExportarPDF) {
+        btnExportarPDF.addEventListener('click', exportarPDF);
+    }
+    
     // Establecer fecha actual en los formularios
     const hoy = new Date().toISOString().split('T')[0];
     document.getElementById('fecha_mo') && (document.getElementById('fecha_mo').value = hoy);
     document.getElementById('fecha_cif') && (document.getElementById('fecha_cif').value = hoy);
 });
 </script>
-
 
 {% endblock %}
