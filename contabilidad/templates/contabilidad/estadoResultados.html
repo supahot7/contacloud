@@ -14,6 +14,11 @@
   <!-- Controles / Filtros -->
   <form method="GET" action="{% url 'contabilidad:estadoResultados' %}">
     <div class="row mb-3 g-2 align-items-end">
+      <div class="col-md-2">
+        <button type="button" class="btn btn-secondary w-100" onclick="regresar()">
+          ← Regresar
+        </button>
+      </div>
       <div class="col-md-3">
         <label class="form-label">Fecha Inicial</label>
         <input type="date" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}" />
@@ -25,11 +30,40 @@
       <div class="col-md-2">
         <button type="submit" class="btn btn-primary w-100">Generar Reporte</button>
       </div>
-      <div class="col-md-4 text-end">
+      <div class="col-md-2 text-end">
         <button type="button" class="btn btn-sm btn-warning me-1" onclick="window.print()">🖨️ Imprimir</button>
+        <button type="button" class="btn btn-sm btn-danger" onclick="irACierreContable()">🔒 Cierre</button>
       </div>
     </div>
   </form>
+
+  <!-- Tarjeta de Resumen Rápido -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card text-white bg-primary">
+        <div class="card-body text-center">
+          <h5 class="card-title">Total Ingresos</h5>
+          <h3 class="card-text">${{ total_ingresos|floatformat:2 }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-danger">
+        <div class="card-body text-center">
+          <h5 class="card-title">Total Gastos</h5>
+          <h3 class="card-text">${{ total_gastos|floatformat:2 }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white {% if utilidad_neta >= 0 %}bg-success{% else %}bg-warning{% endif %}">
+        <div class="card-body text-center">
+          <h5 class="card-title">{{ nombre_utilidad }}</h5>
+          <h3 class="card-text">${{ utilidad_neta|floatformat:2 }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Tabla -->
   <div class="table-responsive">
@@ -87,11 +121,55 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Sección de Cierre Contable -->
+  <div class="card mt-4 border-warning">
+    <div class="card-header bg-warning text-dark">
+      <h5 class="mb-0">🔒 Cierre Contable</h5>
+    </div>
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <p class="mb-2"><strong>Proceso de Cierre del Ejercicio</strong></p>
+          <p class="text-muted mb-0">
+            Transfiere los saldos de ingresos y gastos a la cuenta de capital para iniciar un nuevo período contable.
+          </p>
+        </div>
+        <div class="col-md-4 text-end">
+          <button type="button" class="btn btn-warning btn-lg" onclick="irACierreContable()">
+            🔒 Ir al Cierre Contable
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
 @media print {
-  .btn, form { display: none; }
+  .btn, form, .card, .bg-warning { 
+    display: none; 
+  }
+}
+
+.card {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-body.text-center h3 {
+  font-weight: bold;
 }
 </style>
+
+<script>
+function regresar() {
+  // Volver a la página anterior
+  window.history.back();
+}
+
+function irACierreContable() {
+  // Redirigir a la página de cierre contable
+  window.location.href = "{% url 'contabilidad:cierre_contable' %}";
+}
+</script>
 {% endblock %}

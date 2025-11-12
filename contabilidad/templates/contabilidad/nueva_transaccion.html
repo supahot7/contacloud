@@ -272,11 +272,16 @@ document.addEventListener('DOMContentLoaded', function() {
     let movementCount = 0;
     let movimientos = [];
 
-    // Cuentas IVA
-    const CUENTA_IVA_PAGAR = {% if cuenta_iva_pagar_id %}{{ cuenta_iva_pagar_id }}{% else %}null{% endif %};
-    const CUENTA_IVA_COBRAR = {% if cuenta_iva_cobrar_id %}{{ cuenta_iva_cobrar_id }}{% else %}null{% endif %};
+    // Cuentas IVA del catálogo
+    // CUENTA_IVA_COBRAR = IVA Crédito Fiscal (para COMPRAS - va al débito)
+    // CUENTA_IVA_PAGAR = IVA Débito Fiscal / IVA Por Pagar (para VENTAS - va al crédito)
+    const CUENTA_IVA_CREDITO = {% if cuenta_iva_cobrar_id %}{{ cuenta_iva_cobrar_id }}{% else %}null{% endif %};
+    const CUENTA_IVA_DEBITO = {% if cuenta_iva_pagar_id %}{{ cuenta_iva_pagar_id }}{% else %}null{% endif %};
 
-    console.log('🔧 Cuentas IVA:', CUENTA_IVA_PAGAR, CUENTA_IVA_COBRAR);
+    console.log('🔧 Cuentas IVA del catálogo:', {
+        creditoFiscal: CUENTA_IVA_CREDITO,
+        debitoFiscal: CUENTA_IVA_DEBITO
+    });
 
     // Eventos para cálculo IVA en tiempo real
     if (montoInputEl) montoInputEl.addEventListener('input', actualizarCalculoIVA);
@@ -427,16 +432,28 @@ document.addEventListener('DOMContentLoaded', function() {
         actualizarTotales();
     }
 
+    // ✅ FUNCIÓN CORREGIDA - IVA ahora va correctamente
+    // ✅ FUNCIÓN CORREGIDA - Usa cuentas del catálogo según tipo de operación
     function crearMovimientoIVA(montoBase, descripcionBase, esDebito) {
         const montoIVA = montoBase * 0.13;
-        const cuentaIVAId = esDebito ? CUENTA_IVA_PAGAR : CUENTA_IVA_COBRAR;
-        const nombreCuentaIVA = esDebito ? 'IVA Por Pagar' : 'IVA Crédito Fiscal';
+        
+        // ✅ LÓGICA CORRECTA CON NOMBRES DEL CATÁLOGO:
+        // - COMPRA (débito): Usa CUENTA_IVA_CREDITO (IVA Crédito Fiscal) - va al DÉBITO
+        // - VENTA (crédito): Usa CUENTA_IVA_DEBITO (IVA Débito Fiscal/Por Pagar) - va al CRÉDITO
+        const cuentaIVAId = esDebito ? CUENTA_IVA_CREDITO : CUENTA_IVA_DEBITO;
+        const nombreCuentaIVA = esDebito ? 'IVA Crédito Fiscal' : 'IVA Débito Fiscal';
 
-        console.log('📋 Creando movimiento IVA, cuenta:', cuentaIVAId);
+        console.log('📋 Creando movimiento IVA:', {
+            tipoOperacion: esDebito ? 'COMPRA' : 'VENTA',
+            cuentaUsada: nombreCuentaIVA,
+            cuentaId: cuentaIVAId,
+            monto: montoIVA,
+            lado: esDebito ? 'DÉBITO' : 'CRÉDITO'
+        });
 
         if (!cuentaIVAId || cuentaIVAId === 'None' || cuentaIVAId === 'null') {
-            console.warn('⚠️ Cuenta de IVA no configurada');
-            mostrarError('No se encontró la cuenta de IVA. Configure una cuenta con "IVA" en el nombre.');
+            console.warn('⚠️ Cuenta de IVA no configurada en el catálogo');
+            mostrarError('No se encontró la cuenta de IVA en el catálogo. Configure las cuentas de IVA Crédito Fiscal e IVA Débito Fiscal.');
             return null;
         }
 
@@ -444,15 +461,18 @@ document.addEventListener('DOMContentLoaded', function() {
             id: Date.now() + Math.floor(Math.random() * 1000),
             cuenta_id: cuentaIVAId,
             cuenta_nombre: nombreCuentaIVA,
-            debe: esDebito ? '0.00' : montoIVA.toFixed(2),
-            haber: esDebito ? montoIVA.toFixed(2) : '0.00',
+            // ✅ CORRECCIÓN: El IVA va en el MISMO lado que la transacción principal
+            // COMPRA (débito): Activo → IVA Crédito al DÉBITO
+            // VENTA (crédito): Pasivo → IVA Débito al CRÉDITO
+            debe: esDebito ? montoIVA.toFixed(2) : '0.00',
+            haber: esDebito ? '0.00' : montoIVA.toFixed(2),
             descripcion: `IVA - ${descripcionBase}`,
             es_iva: true,
             monto_base: montoBase,
             monto_iva: montoIVA
         };
 
-        console.log('✅ Movimiento IVA creado:', movimientoIVA);
+        console.log('✅ Movimiento IVA creado correctamente:', movimientoIVA);
         agregarMovimientoATabla(movimientoIVA);
         movimientos.push(movimientoIVA);
         return movimientoIVA;

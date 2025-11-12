@@ -18,6 +18,11 @@
   <!-- Controles / Filtros -->
   <form method="GET" action="{% url 'contabilidad:balanceGeneral' %}">
     <div class="row mb-3 g-2 align-items-end">
+      <div class="col-md-2">
+        <button type="button" class="btn btn-secondary w-100" onclick="regresar()">
+          ← Regresar
+        </button>
+      </div>
       <div class="col-md-3">
         <label class="form-label">Fecha Inicial</label>
         <input type="date" name="fecha_inicial" class="form-control" value="{{ fecha_inicial }}">
@@ -29,7 +34,7 @@
       <div class="col-md-2">
         <button type="submit" class="btn btn-primary w-100">Generar Reporte</button>
       </div>
-      <div class="col-md-4 text-end">
+      <div class="col-md-2 text-end">
         <button type="button" class="btn btn-sm btn-warning me-1" onclick="exportarExcel()">📤 Exportar</button>
         <button type="button" class="btn btn-sm btn-danger" onclick="window.print()">🖨️ Imprimir</button>
       </div>
@@ -173,6 +178,11 @@
 </style>
 
 <script>
+function regresar() {
+  // Volver a la página anterior
+  window.history.back();
+}
+
 function exportarExcel() {
   // Implementar exportación a Excel
   alert('Función de exportación en desarrollo');

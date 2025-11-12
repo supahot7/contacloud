@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/licencias/<int:licencia_id>/agregar-stock/', views.api_licencia_agregar_stock, name='api_licencia_agregar_stock'),
     path('api/licencias/<int:licencia_id>/', views.api_licencia_detalle, name='api_licencia_detalle'),
     path('api/licencias/dashboard/', views.api_licencias_dashboard, name='api_licencias_dashboard'),
-   
+    path('cierre-contable/', views.cierre_contable, name='cierre_contable'),
+    path('ejecutar-cierre/', views.ejecutar_cierre, name='ejecutar_cierre'),
 ]
    

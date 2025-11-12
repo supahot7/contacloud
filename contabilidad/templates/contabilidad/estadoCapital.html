@@ -14,6 +14,11 @@
   <!-- Controles / Filtros -->
   <form method="GET" action="{% url 'contabilidad:estadoCapital' %}">
     <div class="row mb-3 g-2 align-items-end">
+      <div class="col-md-2">
+        <button type="button" class="btn btn-secondary w-100" onclick="regresar()">
+          ← Regresar
+        </button>
+      </div>
       <div class="col-md-3">
         <label class="form-label">Fecha Inicial</label>
         <input type="date" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}" />
@@ -84,4 +89,10 @@
   .btn, form { display: none; }
 }
 </style>
+<script>
+  function regresar() {
+    // Volver a la página anterior
+    window.history.back();
+}
+</script>
 {% endblock %}

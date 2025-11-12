@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cierre Contable - Estados Financieros{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="mb-4 text-center">
+    <h1 class="display-5">Cierre Contable</h1>
+    <p class="lead">Proceso de cierre del ejercicio contable</p>
+  </div>
+
+  <!-- Controles / Filtros -->
+  <form method="GET" action="{% url 'contabilidad:cierre_contable' %}">
+    <div class="row mb-3 g-2 align-items-end">
+      <div class="col-md-2">
+        <button type="button" class="btn btn-secondary w-100" onclick="regresar()">
+          ← Regresar
+        </button>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Año a Cerrar</label>
+        <select name="ano_cierre" class="form-select" onchange="this.form.submit()">
+          {% for ano in anos_disponibles %}
+            <option value="{{ ano }}" {% if ano == ano_seleccionado %}selected{% endif %}>{{ ano }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha de Cierre</label>
+        <input type="date" name="fecha_cierre" class="form-control" value="{{ fecha_cierre }}">
+      </div>
+      <div class="col-md-4 text-end">
+        <button type="button" class="btn btn-sm btn-warning me-1" onclick="window.print()">🖨️ Imprimir</button>
+        {% if not cierre_realizado %}
+          <button type="button" class="btn btn-danger" onclick="ejecutarCierre()">
+            🔒 Ejecutar Cierre Contable
+          </button>
+        {% else %}
+          <button type="button" class="btn btn-success" disabled>
+            ✅ Cierre Realizado
+          </button>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+
+  <!-- Resumen del Cierre -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card text-white bg-primary">
+        <div class="card-body">
+          <h5 class="card-title">Utilidad/Pérdida</h5>
+          <h3 class="card-text">${{ utilidad_neta|floatformat:2 }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-white bg-info">
+        <div class="card-body">
+          <h5 class="card-title">Total Ingresos</h5>
+          <h3 class="card-text">${{ total_ingresos|floatformat:2 }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-white bg-warning">
+        <div class="card-body">
+          <h5 class="card-title">Total Gastos</h5>
+          <h3 class="card-text">${{ total_gastos|floatformat:2 }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-white {% if cierre_realizado %}bg-success{% else %}bg-secondary{% endif %}">
+        <div class="card-body">
+          <h5 class="card-title">Estado</h5>
+          <h3 class="card-text">
+            {% if cierre_realizado %}Cerrado{% else %}Pendiente{% endif %}
+          </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detalles del Cierre -->
+  <div class="row">
+    <!-- Cuentas de Resultados -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Cuentas de Resultados a Cerrar</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Cuenta</th>
+                  <th class="text-end">Saldo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Ingresos -->
+                <tr class="table-success">
+                  <td colspan="2"><strong>INGRESOS</strong></td>
+                </tr>
+                {% for cuenta in cuentas_ingresos %}
+                <tr>
+                  <td>{{ cuenta.codigo }} - {{ cuenta.nombre }}</td>
+                  <td class="text-end">${{ cuenta.saldo|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="2" class="text-center text-muted">No hay cuentas de ingresos</td>
+                </tr>
+                {% endfor %}
+                
+                <!-- Gastos -->
+                <tr class="table-danger">
+                  <td colspan="2"><strong>GASTOS</strong></td>
+                </tr>
+                {% for cuenta in cuentas_gastos %}
+                <tr>
+                  <td>{{ cuenta.codigo }} - {{ cuenta.nombre }}</td>
+                  <td class="text-end">${{ cuenta.saldo|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="2" class="text-center text-muted">No hay cuentas de gastos</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asientos de Cierre -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">Asientos de Cierre Generados</h5>
+        </div>
+        <div class="card-body">
+          {% if asientos_cierre %}
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Descripción</th>
+                    <th class="text-end">Monto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for asiento in asientos_cierre %}
+                  <tr>
+                    <td>{{ asiento.descripcion }}</td>
+                    <td class="text-end">${{ asiento.monto|floatformat:2 }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-center text-muted">
+              <p>No se han generado asientos de cierre</p>
+              <p><small>Los asientos se generarán al ejecutar el cierre</small></p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Resumen de Verificación -->
+      <div class="card mt-3">
+        <div class="card-header {% if esta_balanceado %}bg-success{% else %}bg-warning{% endif %} text-white">
+          <h5 class="mb-0">Verificación de Balance</h5>
+        </div>
+        <div class="card-body text-center">
+          {% if esta_balanceado %}
+            <div class="text-success">
+              <i class="fas fa-check-circle fa-2x mb-2"></i>
+              <h5>✓ Balance Cuadrado</h5>
+              <p class="mb-0">Total Débito: ${{ total_debe|floatformat:2 }}<br>
+              Total Crédito: ${{ total_haber|floatformat:2 }}</p>
+            </div>
+          {% else %}
+            <div class="text-warning">
+              <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+              <h5>⚠ Balance Descuadrado</h5>
+              <p class="mb-0">Diferencia: ${{ diferencia_balance|floatformat:2 }}</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Información Importante -->
+  <div class="alert alert-info mt-4">
+    <h6><i class="fas fa-info-circle"></i> Información del Proceso de Cierre</h6>
+    <ul class="mb-0">
+      <li>El cierre contable transferirá los saldos de las cuentas de resultados (ingresos y gastos) a la cuenta de capital</li>
+      <li>Este proceso es irreversible una vez ejecutado</li>
+      <li>Se recomienda realizar una copia de seguridad antes del cierre</li>
+      <li>Después del cierre, las cuentas de resultados quedarán con saldo cero</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="modalConfirmacionCierre" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">Confirmar Cierre Contable</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>¿Está seguro que desea ejecutar el cierre contable para el año {{ ano_seleccionado }}?</p>
+        <div class="alert alert-danger">
+          <strong>¡ADVERTENCIA!</strong> Esta acción es irreversible y afectará todos los saldos contables.
+        </div>
+        <p><strong>Resumen del cierre:</strong></p>
+        <ul>
+          <li>Utilidad/Pérdida Neta: ${{ utilidad_neta|floatformat:2 }}</li>
+          <li>Total cuentas a cerrar: {{ total_cuentas_cierre }}</li>
+          <li>Fecha de cierre: {{ fecha_cierre }}</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" onclick="confirmarCierre()">Ejecutar Cierre</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function regresar() {
+  window.history.back();
+}
+
+function ejecutarCierre() {
+  // Mostrar modal de confirmación
+  const modal = new bootstrap.Modal(document.getElementById('modalConfirmacionCierre'));
+  modal.show();
+}
+
+function confirmarCierre() {
+  // Cerrar el modal
+  const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmacionCierre'));
+  modal.hide();
+
+  // Mostrar loading
+  const btn = document.querySelector('.btn-danger');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Procesando...';
+  btn.disabled = true;
+
+  // Ejecutar cierre via AJAX
+  fetch("{% url 'contabilidad:ejecutar_cierre' %}", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({
+      'ano_cierre': '{{ ano_seleccionado }}',
+      'fecha_cierre': '{{ fecha_cierre }}'
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('✅ ' + data.message);
+      location.reload();
+    } else {
+      alert('❌ ' + data.message);
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('❌ Error al ejecutar el cierre');
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  });
+}
+</script>
+
+<style>
+@media print {
+  .btn, form, .alert, .modal {
+    display: none;
+  }
+}
+</style>
+{% endblock %}

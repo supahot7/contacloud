@@ -375,7 +375,7 @@ def nueva_transaccion(request):
 @require_POST
 @csrf_exempt
 def guardar_transaccion(request):
-    """Vista para guardar la transacción vía AJAX"""
+    """Vista para guardar la transacción vía AJAX - CON ACTUALIZACIÓN DE INVENTARIO"""
     try:
         data = json.loads(request.body)
         movimientos = data.get('movimientos', [])
@@ -408,7 +408,7 @@ def guardar_transaccion(request):
         total_haber = sum(Decimal(str(mov['haber'])) for mov in movimientos)
         
         diferencia = abs(total_debe - total_haber)
-        if diferencia > Decimal('0.01'):  # Tolerancia para decimales
+        if diferencia > Decimal('0.01'):
             return JsonResponse({
                 'success': False,
                 'message': f'El asiento no está balanceado. Débito: ${total_debe:.2f}, Crédito: ${total_haber:.2f}, Diferencia: ${diferencia:.2f}'
@@ -425,11 +425,13 @@ def guardar_transaccion(request):
                 descripcion=descripcion_general,
                 creado_por=request.user,
                 tiene_iva=tiene_iva,
-                monto_total=total_debe  # Usar total_debe ya que debe = haber
+                monto_total=total_debe
             )
             
-            # Crear las partidas
+            # Crear las partidas Y actualizar inventario
             partidas_creadas = 0
+            inventario_actualizado = False
+            
             for mov in movimientos:
                 try:
                     cuenta = Cuenta.objects.get(id=mov['cuenta_id'])
@@ -446,6 +448,38 @@ def guardar_transaccion(request):
                     )
                     partidas_creadas += 1
                     
+                    # ============================================
+                    # ACTUALIZAR INVENTARIO AUTOMÁTICAMENTE
+                    # ============================================
+                    if 'inventario de licencias' in cuenta.nombre.lower():
+                        monto_haber = Decimal(str(mov['haber']))
+                        
+                        # Si hay un HABER en inventario = SALIDA (venta)
+                        if monto_haber > 0:
+                            # Buscar licencias disponibles
+                            licencias_disponibles = Licencia.objects.filter(
+                                cantidad_disponible__gt=0
+                            ).order_by('fecha_adquisicion')
+                            
+                            if licencias_disponibles.exists():
+                                # Usar el costo promedio o el de la primera licencia
+                                licencia_ref = licencias_disponibles.first()
+                                costo_unitario = licencia_ref.costo_unitario
+                                
+                                if costo_unitario > 0:
+                                    cantidad_a_vender = int(monto_haber / costo_unitario)
+                                    
+                                    for licencia in licencias_disponibles:
+                                        if cantidad_a_vender <= 0:
+                                            break
+                                        
+                                        cantidad_en_esta = min(cantidad_a_vender, licencia.cantidad_disponible)
+                                        licencia.vender_licencias(cantidad_en_esta)
+                                        cantidad_a_vender -= cantidad_en_esta
+                                        inventario_actualizado = True
+                                        
+                                        print(f"📦 Inventario actualizado: Vendidas {cantidad_en_esta} de {licencia.nombre}")
+                    
                 except Cuenta.DoesNotExist:
                     continue
                 except Exception as e:
@@ -455,12 +489,17 @@ def guardar_transaccion(request):
             if partidas_creadas == 0:
                 raise Exception("No se pudo crear ninguna partida")
         
+        mensaje_respuesta = f'Transacción #{asiento.id} guardada exitosamente'
+        if inventario_actualizado:
+            mensaje_respuesta += '. El inventario de licencias fue actualizado automáticamente.'
+        
         return JsonResponse({
             'success': True,
-            'message': f'Transacción #{asiento.id} guardada exitosamente',
+            'message': mensaje_respuesta,
             'asiento_id': asiento.id,
             'tiene_iva': tiene_iva,
-            'partidas_creadas': partidas_creadas
+            'partidas_creadas': partidas_creadas,
+            'inventario_actualizado': inventario_actualizado
         })
         
     except json.JSONDecodeError:
@@ -952,3 +991,254 @@ def api_licencias_dashboard(request):
             'success': False,
             'message': f'Error al cargar datos del dashboard: {str(e)}'
         }, status=500)
+    
+
+    # -------------------------
+# Cierre Contable - VISTAS NUEVAS
+# -------------------------
+@login_required(login_url='/login/')
+def cierre_contable(request):
+    """Vista principal del cierre contable"""
+    from datetime import datetime
+    
+    # Obtener parámetros
+    ano_seleccionado = request.GET.get('ano_cierre', str(datetime.now().year))
+    fecha_cierre = request.GET.get('fecha_cierre', f'{ano_seleccionado}-12-31')
+    
+    # Obtener años disponibles (últimos 5 años)
+    anos_disponibles = [str(year) for year in range(datetime.now().year - 4, datetime.now().year + 1)]
+    
+    # Calcular saldos para el cierre
+    fecha_inicio = f'{ano_seleccionado}-01-01'
+    fecha_fin = fecha_cierre
+    
+    # Obtener cuentas de ingresos y gastos
+    def obtener_saldos_cuentas(tipo_cuenta):
+        cuentas = Cuenta.objects.filter(
+            tipo=tipo_cuenta,
+            es_cuenta_detalle=True
+        )
+        
+        resultados = []
+        for cuenta in cuentas:
+            partidas = Partida.objects.filter(
+                cuenta=cuenta,
+                asiento__fecha__range=[fecha_inicio, fecha_fin],
+                asiento__estado='contabilizado'
+            )
+            
+            debe = partidas.aggregate(total=Sum('debe'))['total'] or 0
+            haber = partidas.aggregate(total=Sum('haber'))['total'] or 0
+            
+            if tipo_cuenta == 'ingreso':
+                saldo = haber - debe  # Naturaleza acreedora
+            else:  # gasto
+                saldo = debe - haber  # Naturaleza deudora
+            
+            if saldo != 0:
+                resultados.append({
+                    'id': cuenta.id,
+                    'codigo': cuenta.codigo,
+                    'nombre': cuenta.nombre,
+                    'saldo': abs(saldo),
+                    'tipo': tipo_cuenta
+                })
+        
+        return resultados
+    
+    cuentas_ingresos = obtener_saldos_cuentas('ingreso')
+    cuentas_gastos = obtener_saldos_cuentas('gasto')
+    
+    # Calcular totales
+    total_ingresos = sum(cuenta['saldo'] for cuenta in cuentas_ingresos)
+    total_gastos = sum(cuenta['saldo'] for cuenta in cuentas_gastos)
+    utilidad_neta = total_ingresos - total_gastos
+    
+    # Verificar si ya se realizó el cierre para este año
+    cierre_realizado = Asiento.objects.filter(
+        descripcion__icontains=f'cierre contable {ano_seleccionado}',
+        tiene_iva=False
+    ).exists()
+    
+    # Preparar asientos de cierre (simulación)
+    asientos_cierre = []
+    if not cierre_realizado:
+        # Asiento para cerrar ingresos
+        if total_ingresos > 0:
+            asientos_cierre.append({
+                'descripcion': 'Cierre de cuentas de ingresos',
+                'monto': total_ingresos
+            })
+        
+        # Asiento para cerrar gastos
+        if total_gastos > 0:
+            asientos_cierre.append({
+                'descripcion': 'Cierre de cuentas de gastos',
+                'monto': total_gastos
+            })
+        
+        # Asiento de utilidad/pérdida
+        if utilidad_neta != 0:
+            tipo_resultado = 'Utilidad' if utilidad_neta > 0 else 'Pérdida'
+            asientos_cierre.append({
+                'descripcion': f'Traspaso de {tipo_resultado} neta a capital',
+                'monto': abs(utilidad_neta)
+            })
+    
+    # Verificar balance
+    total_debe = total_gastos + (utilidad_neta if utilidad_neta > 0 else 0)
+    total_haber = total_ingresos + (abs(utilidad_neta) if utilidad_neta < 0 else 0)
+    esta_balanceado = abs(total_debe - total_haber) < 0.01
+    diferencia_balance = abs(total_debe - total_haber)
+    
+    context = {
+        'ano_seleccionado': ano_seleccionado,
+        'fecha_cierre': fecha_cierre,
+        'anos_disponibles': anos_disponibles,
+        'cuentas_ingresos': cuentas_ingresos,
+        'cuentas_gastos': cuentas_gastos,
+        'total_ingresos': total_ingresos,
+        'total_gastos': total_gastos,
+        'utilidad_neta': utilidad_neta,
+        'cierre_realizado': cierre_realizado,
+        'asientos_cierre': asientos_cierre,
+        'total_cuentas_cierre': len(cuentas_ingresos) + len(cuentas_gastos),
+        'esta_balanceado': esta_balanceado,
+        'diferencia_balance': diferencia_balance,
+        'total_debe': total_debe,
+        'total_haber': total_haber,
+    }
+    
+    return render(request, 'contabilidad/cierreContable.html', context)
+
+@login_required(login_url='/login/')
+@require_POST
+@csrf_exempt
+def ejecutar_cierre(request):
+    """Ejecutar el cierre contable via AJAX"""
+    try:
+        data = json.loads(request.body)
+        ano_cierre = data.get('ano_cierre')
+        fecha_cierre = data.get('fecha_cierre')
+        
+        # Verificar que no se haya realizado ya el cierre
+        if Asiento.objects.filter(descripcion__icontains=f'cierre contable {ano_cierre}').exists():
+            return JsonResponse({
+                'success': False,
+                'message': f'El cierre contable para el año {ano_cierre} ya fue realizado'
+            })
+        
+        # Obtener cuentas necesarias
+        try:
+            cuenta_utilidad_ejercicio = Cuenta.objects.get(nombre__icontains='utilidad del ejercicio')
+        except Cuenta.DoesNotExist:
+            # Crear cuenta si no existe
+            cuenta_utilidad_ejercicio = Cuenta.objects.create(
+                codigo='399',
+                nombre='Utilidad del Ejercicio',
+                tipo='capital',
+                descripcion='Cuenta para el traspaso de resultados del ejercicio',
+                es_cuenta_detalle=True
+            )
+        
+        # Obtener saldos de cuentas de resultados
+        fecha_inicio = f'{ano_cierre}-01-01'
+        
+        with transaction.atomic():
+            # 1. Cerrar cuentas de ingresos
+            cuentas_ingresos = Cuenta.objects.filter(tipo='ingreso', es_cuenta_detalle=True)
+            for cuenta in cuentas_ingresos:
+                partidas = Partida.objects.filter(
+                    cuenta=cuenta,
+                    asiento__fecha__range=[fecha_inicio, fecha_cierre],
+                    asiento__estado='contabilizado'
+                )
+                
+                debe = partidas.aggregate(total=Sum('debe'))['total'] or 0
+                haber = partidas.aggregate(total=Sum('haber'))['total'] or 0
+                saldo = haber - debe  # Naturaleza acreedora
+                
+                if saldo > 0:
+                    # Crear asiento de cierre para esta cuenta de ingreso
+                    asiento_cierre = Asiento.objects.create(
+                        fecha=fecha_cierre,
+                        descripcion=f'Cierre contable {ano_cierre} - {cuenta.nombre}',
+                        creado_por=request.user,
+                        tiene_iva=False,
+                        monto_total=saldo
+                    )
+                    
+                    # Partida 1: Cargo a la cuenta de ingreso (para cerrarla)
+                    Partida.objects.create(
+                        asiento=asiento_cierre,
+                        cuenta=cuenta,
+                        debe=saldo,
+                        haber=0,
+                        descripcion=f'Cierre de cuenta de ingreso {ano_cierre}'
+                    )
+                    
+                    # Partida 2: Abono a utilidad del ejercicio
+                    Partida.objects.create(
+                        asiento=asiento_cierre,
+                        cuenta=cuenta_utilidad_ejercicio,
+                        debe=0,
+                        haber=saldo,
+                        descripcion=f'Traspaso a utilidad {ano_cierre}'
+                    )
+            
+            # 2. Cerrar cuentas de gastos
+            cuentas_gastos = Cuenta.objects.filter(tipo='gasto', es_cuenta_detalle=True)
+            for cuenta in cuentas_gastos:
+                partidas = Partida.objects.filter(
+                    cuenta=cuenta,
+                    asiento__fecha__range=[fecha_inicio, fecha_cierre],
+                    asiento__estado='contabilizado'
+                )
+                
+                debe = partidas.aggregate(total=Sum('debe'))['total'] or 0
+                haber = partidas.aggregate(total=Sum('haber'))['total'] or 0
+                saldo = debe - haber  # Naturaleza deudora
+                
+                if saldo > 0:
+                    # Crear asiento de cierre para esta cuenta de gasto
+                    asiento_cierre = Asiento.objects.create(
+                        fecha=fecha_cierre,
+                        descripcion=f'Cierre contable {ano_cierre} - {cuenta.nombre}',
+                        creado_por=request.user,
+                        tiene_iva=False,
+                        monto_total=saldo
+                    )
+                    
+                    # Partida 1: Abono a la cuenta de gasto (para cerrarla)
+                    Partida.objects.create(
+                        asiento=asiento_cierre,
+                        cuenta=cuenta,
+                        debe=0,
+                        haber=saldo,
+                        descripcion=f'Cierre de cuenta de gasto {ano_cierre}'
+                    )
+                    
+                    # Partida 2: Cargo a utilidad del ejercicio
+                    Partida.objects.create(
+                        asiento=asiento_cierre,
+                        cuenta=cuenta_utilidad_ejercicio,
+                        debe=saldo,
+                        haber=0,
+                        descripcion=f'Traspaso a utilidad {ano_cierre}'
+                    )
+            
+            # 3. Crear asiento resumen del cierre
+            total_asientos = Asiento.objects.filter(
+                descripcion__icontains=f'cierre contable {ano_cierre}'
+            ).count()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Cierre contable para el año {ano_cierre} ejecutado exitosamente. Se crearon {total_asientos} asientos de cierre.'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al ejecutar el cierre contable: {str(e)}'
+        })
