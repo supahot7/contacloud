@@ -1,4 +1,3 @@
-# views.py - VERSIÓN COMPLETA CORREGIDA
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -362,7 +361,9 @@ def nueva_transaccion(request):
 
     context = {
         'fecha_actual': timezone.now().date().isoformat(),
-        'cuentas': Cuenta.objects.filter(es_cuenta_detalle=True),
+        'cuentas': Cuenta.objects.filter(
+            Q(es_cuenta_detalle=True) | Q(tipo='ingreso') | Q(tipo='gasto')
+        ).order_by('codigo'),
         'cuenta_iva_pagar_id': cuenta_iva_pagar_id,
         'cuenta_iva_cobrar_id': cuenta_iva_cobrar_id,
     }
